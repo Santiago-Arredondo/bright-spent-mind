@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { getCategory } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 
 export interface Expense {
   id: string;
@@ -18,6 +19,7 @@ interface Props {
 
 export const ExpenseList = ({ expenses, onDelete }: Props) => {
   const { t, lang } = useLanguage();
+  const emptyMsg = useEmptyMessage("list");
   const locale = lang === "es" ? "es-ES" : "en-US";
 
   const formatDate = (iso: string) => {
@@ -31,10 +33,10 @@ export const ExpenseList = ({ expenses, onDelete }: Props) => {
 
   if (expenses.length === 0) {
     return (
-      <div className="text-center py-16 px-6">
+      <div className="text-center py-16 px-6 animate-fade-in-up">
         <div className="text-5xl mb-3">🪴</div>
         <p className="font-display text-xl mb-1">{t("empty_title")}</p>
-        <p className="text-sm text-muted-foreground">{t("empty_sub")}</p>
+        <p className="text-sm text-muted-foreground max-w-xs mx-auto">{emptyMsg}</p>
       </div>
     );
   }

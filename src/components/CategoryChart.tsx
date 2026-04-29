@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/categories";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 export const CategoryChart = ({ expenses }: Props) => {
   const { t } = useLanguage();
+  const emptyMsg = useEmptyMessage("breakdown");
 
   const data = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -26,7 +28,7 @@ export const CategoryChart = ({ expenses }: Props) => {
     return (
       <div className="bg-card rounded-3xl shadow-card border border-border p-6">
         <h3 className="font-display text-xl mb-2">{t("spending_by_category")}</h3>
-        <p className="text-sm text-muted-foreground">{t("breakdown_empty")}</p>
+        <p className="text-sm text-muted-foreground">{emptyMsg}</p>
       </div>
     );
   }

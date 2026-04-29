@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -93,6 +94,7 @@ const writeCache = (c: CacheShape) => {
 
 export const AIInsight = ({ expenses }: Props) => {
   const { t, lang } = useLanguage();
+  const insightEmpty = useEmptyMessage("insight");
   const [insight, setInsight] = useState<string>(() => readCache()?.insight ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -190,7 +192,7 @@ export const AIInsight = ({ expenses }: Props) => {
     ? t("ai_thinking")
     : error
     ? error
-    : insight || (expenses.length === 0 ? t("ai_empty") : t("ai_refresh_hint"));
+    : insight || (expenses.length === 0 ? insightEmpty : t("ai_refresh_hint"));
 
   // Tone chip color reflects personality without competing with feedback colors.
   const toneChip: Record<Tone, string> = {
