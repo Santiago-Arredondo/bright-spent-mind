@@ -109,10 +109,10 @@ export const AppShell = ({ children, onAddClick, expenses }: Props) => {
           })}
           <button
             onClick={onAddClick}
-            className="-mt-8 h-14 w-14 rounded-full bg-gradient-primary text-primary-foreground shadow-glow flex items-center justify-center"
+            className="cta-add cta-fab -mt-8 h-16 w-16 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center"
             aria-label={t("add_expense")}
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-7 w-7" strokeWidth={2.5} />
           </button>
           {navItems.slice(1).map((n) => {
             const active = location.pathname === n.to;
