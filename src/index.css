@@ -31,8 +31,22 @@
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
+    /* Feedback accents — used sparingly for meaningful signals */
     --success: 158 50% 42%;
-    --warning: 35 90% 55%;
+    --success-foreground: 0 0% 100%;
+    --success-soft: 158 45% 94%;
+
+    --warning: 35 92% 55%;
+    --warning-foreground: 25 30% 14%;
+    --warning-soft: 38 90% 95%;
+
+    --alert: 4 78% 60%;
+    --alert-foreground: 0 0% 100%;
+    --alert-soft: 6 85% 96%;
+
+    --info: 205 80% 60%;
+    --info-foreground: 0 0% 100%;
+    --info-soft: 205 75% 95%;
 
     --border: 30 20% 88%;
     --input: 30 20% 88%;
@@ -77,6 +91,23 @@
     --accent-foreground: 25 30% 10%;
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
+
+    --success: 158 50% 50%;
+    --success-foreground: 25 30% 10%;
+    --success-soft: 158 35% 18%;
+
+    --warning: 38 90% 60%;
+    --warning-foreground: 25 30% 10%;
+    --warning-soft: 35 40% 18%;
+
+    --alert: 4 75% 62%;
+    --alert-foreground: 25 30% 10%;
+    --alert-soft: 6 35% 20%;
+
+    --info: 205 75% 65%;
+    --info-foreground: 25 30% 10%;
+    --info-soft: 205 35% 20%;
+
     --border: 25 15% 22%;
     --input: 25 15% 22%;
     --ring: 158 50% 55%;
