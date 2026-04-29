@@ -97,6 +97,26 @@ export const translations = {
   preset_30d: { es: "Últimos 30 días", en: "Last 30 days" },
   preset_month: { es: "Este mes", en: "This month" },
   no_results: { es: "Sin resultados con esos filtros.", en: "No results with these filters." },
+
+  // Auth
+  auth_signin_title: { es: "Bienvenido de vuelta", en: "Welcome back" },
+  auth_signup_title: { es: "Crea tu cuenta", en: "Create your account" },
+  auth_signin_sub: { es: "Inicia sesión para seguir cuidando tu dinero.", en: "Sign in to keep tabs on your money." },
+  auth_signup_sub: { es: "Empieza a registrar tus gastos en segundos.", en: "Start logging your expenses in seconds." },
+  auth_email: { es: "Correo electrónico", en: "Email" },
+  auth_password: { es: "Contraseña", en: "Password" },
+  auth_password_hint: { es: "Mínimo 8 caracteres.", en: "At least 8 characters." },
+  auth_signin_cta: { es: "Iniciar sesión", en: "Sign in" },
+  auth_signup_cta: { es: "Crear cuenta", en: "Sign up" },
+  auth_google: { es: "Continuar con Google", en: "Continue with Google" },
+  auth_or: { es: "o", en: "or" },
+  auth_no_account: { es: "¿No tienes cuenta?", en: "Don't have an account?" },
+  auth_have_account: { es: "¿Ya tienes cuenta?", en: "Already have an account?" },
+  auth_invalid: { es: "Revisa tu correo y contraseña (mín. 8 caracteres).", en: "Check your email and password (min. 8 chars)." },
+  auth_welcome: { es: "¡Bienvenido! Sesión iniciada.", en: "Welcome! You're signed in." },
+  auth_already: { es: "Ese correo ya está registrado. Inicia sesión.", en: "That email is already registered. Sign in instead." },
+  auth_bad_creds: { es: "Correo o contraseña incorrectos.", en: "Wrong email or password." },
+  sign_out: { es: "Cerrar sesión", en: "Sign out" },
 } as const;
 
 export type TKey = keyof typeof translations;
