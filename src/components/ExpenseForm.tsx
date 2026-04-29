@@ -36,7 +36,11 @@ export const ExpenseForm = ({ onAdd }: Props) => {
     }
     setBusy(true);
     try {
-      await onAdd(parsed.data);
+      await onAdd({
+        amount: parsed.data.amount,
+        category: parsed.data.category,
+        note: parsed.data.note,
+      });
       setAmount("");
       setNote("");
       toast.success("Logged ✨");
