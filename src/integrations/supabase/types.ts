@@ -35,6 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      category_overrides: {
+        Row: {
+          category: string
+          created_at: string
+          hits: number
+          id: string
+          keyword: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          hits?: number
+          id?: string
+          keyword: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          hits?: number
+          id?: string
+          keyword?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
