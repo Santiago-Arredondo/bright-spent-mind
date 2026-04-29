@@ -5,13 +5,16 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { LanguageToggle } from "./LanguageToggle";
+import { NotificationsBell } from "./NotificationsBell";
+import type { Expense } from "./ExpenseList";
 
 interface Props {
   children: React.ReactNode;
   onAddClick: () => void;
+  expenses: Expense[];
 }
 
-export const AppShell = ({ children, onAddClick }: Props) => {
+export const AppShell = ({ children, onAddClick, expenses }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -58,6 +61,7 @@ export const AppShell = ({ children, onAddClick }: Props) => {
         </nav>
 
         <div className="flex items-center gap-2">
+          <NotificationsBell expenses={expenses} />
           <LanguageToggle />
           <Button
             variant="ghost"

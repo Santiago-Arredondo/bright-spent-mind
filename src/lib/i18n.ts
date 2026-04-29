@@ -135,6 +135,22 @@ export const translations = {
   tone_soft_desc: { es: "Cálido y alentador", en: "Warm and supportive" },
   tone_neutral_desc: { es: "Claro e informativo", en: "Clear and informative" },
   tone_brutal_desc: { es: "Directo, con sarcasmo suave", en: "Direct, lightly sarcastic" },
+
+  // Notifications
+  notifications: { es: "Notificaciones", en: "Notifications" },
+  notif_empty: { es: "Sin avisos por ahora. Todo en orden.", en: "No alerts right now. All clear." },
+  notif_dismiss: { es: "Descartar", en: "Dismiss" },
+  notif_dismiss_all: { es: "Descartar todo", en: "Dismiss all" },
+  notif_no_log_title: { es: "Aún no registras hoy", en: "No expenses logged today" },
+  notif_no_log_body: { es: "Toma 5 segundos y anota tu último gasto antes de que se te olvide.", en: "Take 5 seconds and jot down your latest spend before it slips away." },
+  notif_weekly_spike_title: { es: "Semana más cara de lo normal", en: "Spending up this week" },
+  notif_weekly_spike_body: { es: "Llevas {amount} esta semana, {pct} arriba de tu promedio.", en: "You're at {amount} this week — {pct} above your usual." },
+  notif_cat_spike_title: { es: "Una categoría se disparó", en: "One category is climbing" },
+  notif_cat_spike_body: { es: "{category} subió {pct} vs la semana pasada.", en: "{category} is up {pct} vs last week." },
+  notif_outlier_title: { es: "Gasto grande detectado", en: "Big expense spotted" },
+  notif_outlier_body: { es: "{amount} en {category} pesa bastante en tu semana.", en: "{amount} on {category} is a big chunk of your week." },
+  notif_streak_title: { es: "Buen comienzo", en: "Nice start" },
+  notif_streak_body: { es: "Registra otro gasto para empezar a ver patrones.", en: "Log another expense and patterns will start showing up." },
 } as const;
 
 export type TKey = keyof typeof translations;

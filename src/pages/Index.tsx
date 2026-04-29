@@ -13,7 +13,7 @@ const Index = () => {
   const { expenses, loading, addExpense, deleteExpense } = useExpenses();
 
   return (
-    <AppShell onAddClick={() => setOpen(true)}>
+    <AppShell onAddClick={() => setOpen(true)} expenses={expenses}>
       <Routes>
         <Route
           path="/"
