@@ -38,7 +38,9 @@ export const AppShell = ({ children, onAddClick, expenses }: Props) => {
           <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
             <Wallet className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-display text-xl">Coin</span>
+          <span className="font-display text-xl tracking-tight">
+            Flowbit<span className="text-primary">.</span>
+          </span>
         </div>
 
         <nav className="hidden md:flex items-center gap-1 bg-card/60 backdrop-blur border border-border rounded-full p-1 shadow-card">
