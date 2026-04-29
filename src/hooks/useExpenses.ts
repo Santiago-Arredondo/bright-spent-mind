@@ -3,6 +3,25 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Expense } from "@/components/ExpenseList";
 import { toast } from "sonner";
 
+// DB row shape (new schema) → app shape (Expense)
+type DbRow = {
+  id: string;
+  amount: number;
+  category: string;
+  description: string | null;
+  date: string;
+  user_id: string;
+  created_at: string;
+};
+
+const toExpense = (r: DbRow): Expense => ({
+  id: r.id,
+  amount: Number(r.amount),
+  category: r.category,
+  note: r.description,
+  spent_at: r.date,
+});
+
 export const useExpenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,10 +30,10 @@ export const useExpenses = () => {
     const { data, error } = await supabase
       .from("expenses")
       .select("*")
-      .order("spent_at", { ascending: false })
+      .order("date", { ascending: false })
       .limit(500);
     if (error) toast.error("Couldn't load expenses");
-    else setExpenses((data || []) as Expense[]);
+    else setExpenses(((data as DbRow[]) || []).map(toExpense));
     setLoading(false);
   };
 
@@ -23,19 +42,28 @@ export const useExpenses = () => {
   }, []);
 
   const addExpense = async (e: { amount: number; category: string; note?: string; spent_at?: string }) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    if (!userId) {
+      toast.error("Please sign in to add expenses");
+      throw new Error("not_authenticated");
+    }
+
     const { data, error } = await supabase
       .from("expenses")
       .insert({
+        user_id: userId,
         amount: e.amount,
         category: e.category,
-        note: e.note ?? null,
-        ...(e.spent_at ? { spent_at: e.spent_at } : {}),
+        description: e.note ?? null,
+        ...(e.spent_at ? { date: e.spent_at.slice(0, 10) } : {}),
       })
       .select()
       .single();
     if (error) throw error;
+    const next = toExpense(data as DbRow);
     setExpenses((prev) =>
-      [data as Expense, ...prev].sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
+      [next, ...prev].sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
     );
   };
 
