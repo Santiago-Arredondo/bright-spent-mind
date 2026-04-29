@@ -186,6 +186,20 @@
   .animate-pulse-soft {
     animation: pulse-soft 2.4s ease-in-out infinite;
   }
+  .animate-think {
+    animation: think-bob 1.35s ease-in-out infinite;
+  }
+  .insight-skeleton {
+    background: linear-gradient(90deg, hsl(0 0% 100% / 0.16), hsl(0 0% 100% / 0.42), hsl(0 0% 100% / 0.16));
+    background-size: 220% 100%;
+    animation: skeleton-sheen 1.4s ease-in-out infinite;
+  }
+  .expense-pop {
+    animation: expense-pop 0.52s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .expense-pop .expense-shimmer {
+    animation: expense-shimmer 0.52s ease-out both;
+  }
 }
 
 @keyframes aurora-drift {
@@ -203,6 +217,33 @@
 @keyframes pulse-soft {
   0%, 100% { opacity: 0.5; transform: scale(1); }
   50%      { opacity: 0.95; transform: scale(1.08); }
+}
+@keyframes think-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-2px) rotate(-4deg); }
+}
+@keyframes skeleton-sheen {
+  0%   { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+@keyframes expense-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+@keyframes expense-shimmer {
+  0%   { opacity: 0; transform: translateX(-100%); background: linear-gradient(110deg, transparent, hsl(var(--primary) / 0.14), transparent); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100%); background: linear-gradient(110deg, transparent, hsl(var(--primary) / 0.14), transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Add Expense — primary CTA emphasis */
