@@ -8,7 +8,28 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import type { Expense } from "./ExpenseList";
+import type { NotificationKind } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
+
+// Map each notification kind to a feedback tone token.
+// alert  → red (overspending / outliers)
+// warning → amber (rising spend)
+// info   → blue (neutral nudges)
+const KIND_STYLES: Record<NotificationKind, { dot: string; accent: string; bar: string }> = {
+  weekly_spike:     { dot: "bg-warning", accent: "text-warning", bar: "bg-warning" },
+  category_spike:   { dot: "bg-warning", accent: "text-warning", bar: "bg-warning" },
+  big_outlier:      { dot: "bg-alert",   accent: "text-alert",   bar: "bg-alert" },
+  no_log_today:     { dot: "bg-info",    accent: "text-info",    bar: "bg-info" },
+  streak_encourage: { dot: "bg-info",    accent: "text-info",    bar: "bg-info" },
+};
+
+const severityRank: Record<NotificationKind, number> = {
+  big_outlier: 3,
+  weekly_spike: 2,
+  category_spike: 2,
+  no_log_today: 1,
+  streak_encourage: 1,
+};
 
 interface Props {
   expenses: Expense[];
