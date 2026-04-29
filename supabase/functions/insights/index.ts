@@ -68,6 +68,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
+        temperature: 0.9,
         messages: [
           { role: "system", content: SYSTEM_PROMPTS[lang] },
           { role: "user", content: USER_PROMPTS[lang](total.toFixed(2), expenses.length, summary) },
