@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ExpenseList, type Expense } from "@/components/ExpenseList";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   expenses: Expense[];
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const History = ({ expenses, loading, onDelete }: Props) => {
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<string | null>(null);
 
@@ -29,11 +31,11 @@ const History = ({ expenses, loading, onDelete }: Props) => {
     <div className="max-w-4xl mx-auto px-6 pb-16">
       <section className="mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-sm text-muted-foreground mb-1">History</p>
-          <h1 className="font-display text-4xl md:text-5xl">All expenses</h1>
+          <p className="text-sm text-muted-foreground mb-1">{t("history")}</p>
+          <h1 className="font-display text-4xl md:text-5xl">{t("all_expenses")}</h1>
         </div>
         <div className="text-right">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Filtered total</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("filtered_total")}</p>
           <p className="font-display text-3xl tabular-nums">${total.toFixed(2)}</p>
         </div>
       </section>
@@ -42,7 +44,7 @@ const History = ({ expenses, loading, onDelete }: Props) => {
         <div className="relative">
           <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search notes..."
+            placeholder={t("search_notes")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9 rounded-xl bg-secondary border-transparent"
@@ -56,7 +58,7 @@ const History = ({ expenses, loading, onDelete }: Props) => {
               !cat ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-transparent"
             )}
           >
-            All
+            {t("all")}
           </button>
           {CATEGORIES.map((c) => (
             <button
@@ -70,7 +72,7 @@ const History = ({ expenses, loading, onDelete }: Props) => {
               )}
             >
               <span>{c.emoji}</span>
-              <span>{c.label}</span>
+              <span>{t(c.labelKey)}</span>
             </button>
           ))}
         </div>

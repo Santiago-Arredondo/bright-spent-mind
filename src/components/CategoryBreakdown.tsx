@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { CATEGORIES, getCategory } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/categories";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export const CategoryBreakdown = ({ expenses }: Props) => {
+  const { t } = useLanguage();
   const { totals, total } = useMemo(() => {
     const totals: Record<string, number> = {};
     let total = 0;
@@ -24,8 +26,8 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
   if (total === 0) {
     return (
       <div className="bg-card rounded-3xl shadow-card border border-border p-6">
-        <h3 className="font-display text-xl mb-2">Where it goes</h3>
-        <p className="text-sm text-muted-foreground">A breakdown will appear once you log expenses.</p>
+        <h3 className="font-display text-xl mb-2">{t("where_it_goes")}</h3>
+        <p className="text-sm text-muted-foreground">{t("breakdown_empty")}</p>
       </div>
     );
   }
@@ -33,17 +35,16 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
   return (
     <div className="bg-card rounded-3xl shadow-card border border-border p-6">
       <div className="flex items-baseline justify-between mb-5">
-        <h3 className="font-display text-xl">Where it goes</h3>
+        <h3 className="font-display text-xl">{t("where_it_goes")}</h3>
         <p className="font-display text-2xl tabular-nums">${total.toFixed(2)}</p>
       </div>
 
-      {/* segmented bar */}
       <div className="flex h-3 rounded-full overflow-hidden mb-5 bg-secondary">
         {sorted.map((c) => (
           <div
             key={c.id}
             style={{ width: `${(c.value / total) * 100}%`, backgroundColor: `hsl(${c.color})` }}
-            title={`${c.label}: $${c.value.toFixed(2)}`}
+            title={`${t(c.labelKey)}: $${c.value.toFixed(2)}`}
           />
         ))}
       </div>
@@ -58,7 +59,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
                 style={{ backgroundColor: `hsl(${c.color})` }}
               />
               <span className="flex-1 text-sm">
-                {c.emoji} {c.label}
+                {c.emoji} {t(c.labelKey)}
               </span>
               <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">
                 {pct.toFixed(0)}%

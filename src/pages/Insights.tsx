@@ -2,13 +2,17 @@ import { useMemo } from "react";
 import type { Expense } from "@/components/ExpenseList";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { AIInsight } from "@/components/AIInsight";
-import { CATEGORIES, getCategory } from "@/lib/categories";
+import { getCategory } from "@/lib/categories";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   expenses: Expense[];
 }
 
 const Insights = ({ expenses }: Props) => {
+  const { t, lang } = useLanguage();
+  const locale = lang === "es" ? "es-ES" : "en-US";
+
   const { byMonth, topCat, biggest, dailyAvg, daysActive } = useMemo(() => {
     const byMonth: Record<string, number> = {};
     const byCat: Record<string, number> = {};
@@ -27,13 +31,7 @@ const Insights = ({ expenses }: Props) => {
     const topCatId = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0]?.[0];
     const topCat = topCatId ? { ...getCategory(topCatId), amount: byCat[topCatId] } : null;
     const daysActive = daysSet.size || 1;
-    return {
-      byMonth,
-      topCat,
-      biggest,
-      dailyAvg: total / daysActive,
-      daysActive,
-    };
+    return { byMonth, topCat, biggest, dailyAvg: total / daysActive, daysActive };
   }, [expenses]);
 
   const monthEntries = Object.entries(byMonth)
@@ -45,37 +43,35 @@ const Insights = ({ expenses }: Props) => {
   return (
     <div className="max-w-6xl mx-auto px-6 pb-16">
       <section className="mb-8">
-        <p className="text-sm text-muted-foreground mb-1">Insights</p>
-        <h1 className="font-display text-4xl md:text-5xl mb-2">Your money, gently observed</h1>
-        <p className="text-muted-foreground max-w-xl">
-          Patterns and trends from your spending — no judgment, just a clearer picture.
-        </p>
+        <p className="text-sm text-muted-foreground mb-1">{t("insights")}</p>
+        <h1 className="font-display text-4xl md:text-5xl mb-2">{t("insights_title")}</h1>
+        <p className="text-muted-foreground max-w-xl">{t("insights_subtitle")}</p>
       </section>
 
       <div className="grid gap-6 md:grid-cols-2 mb-6">
         <AIInsight expenses={expenses} />
         <div className="bg-card rounded-3xl border border-border shadow-card p-6">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">At a glance</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("at_a_glance")}</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-muted-foreground">Daily average</p>
+              <p className="text-xs text-muted-foreground">{t("daily_average")}</p>
               <p className="font-display text-2xl tabular-nums">${dailyAvg.toFixed(2)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Active days</p>
+              <p className="text-xs text-muted-foreground">{t("active_days")}</p>
               <p className="font-display text-2xl tabular-nums">{daysActive}</p>
             </div>
             {topCat && (
               <div>
-                <p className="text-xs text-muted-foreground">Top category</p>
+                <p className="text-xs text-muted-foreground">{t("top_category")}</p>
                 <p className="font-display text-2xl">
-                  {topCat.emoji} {topCat.label}
+                  {topCat.emoji} {t(topCat.labelKey)}
                 </p>
               </div>
             )}
             {biggest && (
               <div>
-                <p className="text-xs text-muted-foreground">Largest expense</p>
+                <p className="text-xs text-muted-foreground">{t("largest_expense")}</p>
                 <p className="font-display text-2xl tabular-nums">
                   ${Number(biggest.amount).toFixed(2)}
                 </p>
@@ -87,14 +83,14 @@ const Insights = ({ expenses }: Props) => {
 
       <div className="grid gap-6 md:grid-cols-5">
         <div className="md:col-span-3 bg-card rounded-3xl border border-border shadow-card p-6">
-          <h3 className="font-display text-xl mb-5">Monthly trend</h3>
+          <h3 className="font-display text-xl mb-5">{t("monthly_trend")}</h3>
           {monthEntries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Add expenses to see your trend.</p>
+            <p className="text-sm text-muted-foreground">{t("trend_empty")}</p>
           ) : (
             <div className="flex items-end gap-3 h-48">
               {monthEntries.map(([k, v]) => {
                 const [y, m] = k.split("-");
-                const label = new Date(Number(y), Number(m) - 1).toLocaleDateString(undefined, {
+                const label = new Date(Number(y), Number(m) - 1).toLocaleDateString(locale, {
                   month: "short",
                 });
                 return (

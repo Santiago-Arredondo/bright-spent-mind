@@ -6,6 +6,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const schema = z.object({
   amount: z.number().positive().max(1000000),
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export const ExpenseForm = ({ onAdd }: Props) => {
+  const { t } = useLanguage();
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("food");
   const [note, setNote] = useState("");
@@ -31,7 +33,7 @@ export const ExpenseForm = ({ onAdd }: Props) => {
       note: note.trim() || undefined,
     });
     if (!parsed.success) {
-      toast.error("Enter a valid amount");
+      toast.error(t("invalid_amount"));
       return;
     }
     setBusy(true);
@@ -43,9 +45,9 @@ export const ExpenseForm = ({ onAdd }: Props) => {
       });
       setAmount("");
       setNote("");
-      toast.success("Logged ✨");
+      toast.success(t("logged"));
     } catch {
-      toast.error("Couldn't save. Try again.");
+      toast.error(t("save_error"));
     } finally {
       setBusy(false);
     }
@@ -53,7 +55,7 @@ export const ExpenseForm = ({ onAdd }: Props) => {
 
   return (
     <form onSubmit={submit} className="bg-card rounded-3xl shadow-card p-6 md:p-8 border border-border">
-      <h2 className="font-display text-2xl mb-5">Quick add</h2>
+      <h2 className="font-display text-2xl mb-5">{t("quick_add")}</h2>
 
       <div className="flex items-baseline gap-2 mb-6">
         <span className="font-display text-4xl text-muted-foreground">$</span>
@@ -70,7 +72,7 @@ export const ExpenseForm = ({ onAdd }: Props) => {
       </div>
 
       <div className="mb-5">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Category</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("category")}</p>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <button
@@ -85,14 +87,14 @@ export const ExpenseForm = ({ onAdd }: Props) => {
               )}
             >
               <span>{c.emoji}</span>
-              <span>{c.label}</span>
+              <span>{t(c.labelKey)}</span>
             </button>
           ))}
         </div>
       </div>
 
       <Input
-        placeholder="Optional note (e.g. coffee with mom)"
+        placeholder={t("optional_note")}
         value={note}
         onChange={(e) => setNote(e.target.value)}
         maxLength={140}
@@ -105,7 +107,7 @@ export const ExpenseForm = ({ onAdd }: Props) => {
         className="w-full rounded-xl h-12 bg-gradient-primary hover:opacity-90 transition-smooth shadow-glow text-base"
       >
         <Plus className="mr-1 h-5 w-5" />
-        {busy ? "Saving..." : "Add expense"}
+        {busy ? t("saving") : t("add_expense")}
       </Button>
     </form>
   );

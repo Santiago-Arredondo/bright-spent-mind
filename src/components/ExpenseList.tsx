@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { getCategory } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface Expense {
   id: string;
@@ -15,27 +16,29 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  const now = new Date();
-  const diff = (now.getTime() - d.getTime()) / 86400000;
-  if (diff < 1 && d.getDate() === now.getDate()) return "Today";
-  if (diff < 2) return "Yesterday";
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-};
-
 export const ExpenseList = ({ expenses, onDelete }: Props) => {
+  const { t, lang } = useLanguage();
+  const locale = lang === "es" ? "es-ES" : "en-US";
+
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = (now.getTime() - d.getTime()) / 86400000;
+    if (diff < 1 && d.getDate() === now.getDate()) return t("today_label");
+    if (diff < 2) return t("yesterday");
+    return d.toLocaleDateString(locale, { month: "short", day: "numeric" });
+  };
+
   if (expenses.length === 0) {
     return (
       <div className="text-center py-16 px-6">
         <div className="text-5xl mb-3">🪴</div>
-        <p className="font-display text-xl mb-1">Nothing here yet</p>
-        <p className="text-sm text-muted-foreground">Add your first expense to get started.</p>
+        <p className="font-display text-xl mb-1">{t("empty_title")}</p>
+        <p className="text-sm text-muted-foreground">{t("empty_sub")}</p>
       </div>
     );
   }
 
-  // group by date label
   const groups = expenses.reduce<Record<string, Expense[]>>((acc, e) => {
     const k = formatDate(e.spent_at);
     (acc[k] ||= []).push(e);
@@ -50,6 +53,7 @@ export const ExpenseList = ({ expenses, onDelete }: Props) => {
           <div className="bg-card rounded-2xl shadow-card border border-border overflow-hidden">
             {items.map((e, i) => {
               const cat = getCategory(e.category);
+              const catLabel = t(cat.labelKey);
               return (
                 <div
                   key={e.id}
@@ -64,8 +68,8 @@ export const ExpenseList = ({ expenses, onDelete }: Props) => {
                     {cat.emoji}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{e.note || cat.label}</p>
-                    <p className="text-xs text-muted-foreground">{cat.label}</p>
+                    <p className="font-medium truncate">{e.note || catLabel}</p>
+                    <p className="text-xs text-muted-foreground">{catLabel}</p>
                   </div>
                   <p className="font-display text-lg tabular-nums">${Number(e.amount).toFixed(2)}</p>
                   <Button
