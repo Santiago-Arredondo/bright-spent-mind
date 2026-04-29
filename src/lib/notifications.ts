@@ -1,6 +1,7 @@
 import type { Expense } from "@/components/ExpenseList";
 import { getCategory } from "@/lib/categories";
 import { translations, type Lang, type TKey } from "@/lib/i18n";
+import { formatCOP } from "@/lib/money";
 import type { Tone } from "@/lib/tone";
 
 export type NotificationKind =
@@ -100,7 +101,7 @@ const notificationCopy: Record<NotificationKind, Record<Tone, CopyFactory>> = {
 const toneCopy = (kind: NotificationKind, tone: Tone, lang: Lang, vars?: Record<string, string | number>) =>
   notificationCopy[kind][tone](lang, vars);
 
-const fmtMoney = (n: number) => `$${n.toFixed(n < 10 ? 2 : 0)}`;
+const fmtMoney = (n: number) => formatCOP(n, { decimals: n < 10 ? 2 : 0 });
 
 const fmtPct = (frac: number) => `${Math.round(frac * 100)}%`;
 

@@ -5,6 +5,7 @@ import { AIInsight } from "@/components/AIInsight";
 import { getCategory } from "@/lib/categories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
+import { formatCOP } from "@/lib/money";
 
 interface Props {
   expenses: Expense[];
@@ -57,7 +58,7 @@ const Insights = ({ expenses }: Props) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-xs text-muted-foreground">{t("daily_average")}</p>
-              <p className="font-display text-2xl tabular-nums">${dailyAvg.toFixed(2)}</p>
+              <p className="font-display text-2xl tabular-nums">{formatCOP(dailyAvg)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{t("active_days")}</p>
@@ -75,7 +76,7 @@ const Insights = ({ expenses }: Props) => {
               <div>
                 <p className="text-xs text-muted-foreground">{t("largest_expense")}</p>
                 <p className="font-display text-2xl tabular-nums">
-                  ${Number(biggest.amount).toFixed(2)}
+                  {formatCOP(biggest.amount)}
                 </p>
               </div>
             )}
@@ -99,7 +100,7 @@ const Insights = ({ expenses }: Props) => {
                   <div key={k} className="flex-1 flex flex-col items-center gap-2">
                     <div className="w-full flex flex-col items-center justify-end h-full">
                       <span className="text-xs text-muted-foreground tabular-nums mb-1">
-                        ${v.toFixed(0)}
+                        {formatCOP(v, { decimals: 0 })}
                       </span>
                       <div
                         className="w-full bg-gradient-primary rounded-t-lg transition-smooth"

@@ -10,6 +10,7 @@ import { ExpenseList, type Expense } from "@/components/ExpenseList";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatCOP } from "@/lib/money";
 
 interface Props {
   expenses: Expense[];
@@ -99,7 +100,7 @@ const History = ({ expenses, loading, onDelete }: Props) => {
         </div>
         <div className="text-right">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("filtered_total")}</p>
-          <p className="font-display text-3xl tabular-nums">${total.toFixed(2)}</p>
+          <p className="font-display text-3xl tabular-nums">{formatCOP(total)}</p>
         </div>
       </section>
 
@@ -273,7 +274,7 @@ const History = ({ expenses, loading, onDelete }: Props) => {
                       {g.items.length} {g.items.length === 1 ? "·" : "·"}
                     </p>
                   </div>
-                  <p className="font-display text-xl tabular-nums">${g.total.toFixed(2)}</p>
+                  <p className="font-display text-xl tabular-nums">{formatCOP(g.total)}</p>
                 </div>
                 <ExpenseList expenses={g.items} onDelete={onDelete} />
               </div>

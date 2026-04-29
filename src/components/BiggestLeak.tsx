@@ -3,6 +3,7 @@ import { Droplets, Flame } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { getCategory } from "@/lib/categories";
+import { formatCOP } from "@/lib/money";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -38,7 +39,6 @@ export const BiggestLeak = ({ expenses }: Props) => {
   }, [expenses]);
 
   const cat = topId ? getCategory(topId) : null;
-  const fmt = (n: number) => `$${n.toFixed(2)}`;
   const pct = `${Math.round(share * 100)}%`;
 
   return (
@@ -98,7 +98,7 @@ export const BiggestLeak = ({ expenses }: Props) => {
               </p>
             </div>
             <p className="text-xs text-muted-foreground">
-              {interpolate(t("leak_detail"), { amount: fmt(topAmount), pct })}
+              {interpolate(t("leak_detail"), { amount: formatCOP(topAmount), pct })}
             </p>
           </>
         ) : (

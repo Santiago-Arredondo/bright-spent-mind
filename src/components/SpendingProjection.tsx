@@ -3,6 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { projectMonthSpending } from "@/lib/projection";
 import { cn } from "@/lib/utils";
+import { formatCOP } from "@/lib/money";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -27,7 +28,6 @@ export const SpendingProjection = ({ expenses, monthlyBaseline }: Props) => {
   const emptyMsg = useEmptyMessage("projection");
   const p = projectMonthSpending(expenses);
 
-  const fmt = (n: number) => `$${n.toFixed(2)}`;
   const daysLeft = Math.max(0, p.daysInMonth - p.daysSoFar);
 
   // Decide pace: compare current daily avg vs the stable trailing avg.
@@ -75,11 +75,11 @@ export const SpendingProjection = ({ expenses, monthlyBaseline }: Props) => {
       {p.hasData ? (
         <>
           <p className="text-base md:text-lg leading-snug">
-            {interpolate(t("projection_body"), { amount: fmt(p.projectedTotal) })}
+            {interpolate(t("projection_body"), { amount: formatCOP(p.projectedTotal) })}
           </p>
           <p className="text-xs text-muted-foreground mt-2">
             {interpolate(t("projection_detail"), {
-              daily: fmt(p.dailyAvg),
+              daily: formatCOP(p.dailyAvg),
               days: String(daysLeft),
             })}
           </p>

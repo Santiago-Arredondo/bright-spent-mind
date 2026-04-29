@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/categories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
+import { formatCOP } from "@/lib/money";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -38,7 +39,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
     <div className="bg-card rounded-3xl shadow-card border border-border p-6">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="font-display text-xl">{t("where_it_goes")}</h3>
-        <p className="font-display text-2xl tabular-nums">${total.toFixed(2)}</p>
+        <p className="font-display text-2xl tabular-nums">{formatCOP(total)}</p>
       </div>
 
       <div className="flex h-3 rounded-full overflow-hidden mb-5 bg-secondary">
@@ -46,7 +47,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
           <div
             key={c.id}
             style={{ width: `${(c.value / total) * 100}%`, backgroundColor: `hsl(${c.color})` }}
-            title={`${t(c.labelKey)}: $${c.value.toFixed(2)}`}
+            title={`${t(c.labelKey)}: ${formatCOP(c.value)}`}
           />
         ))}
       </div>
@@ -67,7 +68,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
                 {pct.toFixed(0)}%
               </span>
               <span className="text-sm font-medium tabular-nums w-20 text-right">
-                ${c.value.toFixed(2)}
+                {formatCOP(c.value)}
               </span>
             </li>
           );
