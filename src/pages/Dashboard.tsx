@@ -1,6 +1,15 @@
-import { useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, TrendingUp, CalendarDays, Sparkles } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  CalendarDays,
+  Minus,
+  ReceiptText,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { ExpenseList, type Expense } from "@/components/ExpenseList";
 import { CategoryChart } from "@/components/CategoryChart";
 import { AIInsight } from "@/components/AIInsight";
@@ -15,6 +24,85 @@ interface Props {
   loading: boolean;
   onDelete: (id: string) => void;
 }
+
+type MetricTone = "success" | "warning" | "alert";
+type MetricDirection = "up" | "down" | "flat";
+
+const metricToneStyles: Record<MetricTone, { card: string; badge: string; trend: string; bar: string }> = {
+  success: {
+    card: "border-success/20 bg-card/70 hover:border-success/35",
+    badge: "bg-success-soft text-success ring-success/20",
+    trend: "bg-success-soft text-success ring-success/25",
+    bar: "bg-success",
+  },
+  warning: {
+    card: "border-warning/25 bg-card/70 hover:border-warning/40",
+    badge: "bg-warning-soft text-warning ring-warning/25",
+    trend: "bg-warning-soft text-warning ring-warning/30",
+    bar: "bg-warning",
+  },
+  alert: {
+    card: "border-alert/25 bg-card/70 hover:border-alert/45",
+    badge: "bg-alert-soft text-alert ring-alert/25",
+    trend: "bg-alert-soft text-alert ring-alert/30",
+    bar: "bg-alert",
+  },
+};
+
+const directionIcon = {
+  up: ArrowUpRight,
+  down: ArrowDownRight,
+  flat: Minus,
+};
+
+const getDirection = (delta: number, threshold = 0.08): MetricDirection => {
+  if (delta > threshold) return "up";
+  if (delta < -threshold) return "down";
+  return "flat";
+};
+
+const trendText = (delta: number, hasBaseline: boolean) => {
+  if (!hasBaseline) return "—";
+  return `${delta >= 0 ? "+" : ""}${Math.round(delta * 100)}%`;
+};
+
+const MetricCard = ({
+  label,
+  value,
+  icon,
+  tone,
+  direction,
+  trend,
+}: {
+  label: string;
+  value: ReactNode;
+  icon: ReactNode;
+  tone: MetricTone;
+  direction: MetricDirection;
+  trend: string;
+}) => {
+  const styles = metricToneStyles[tone];
+  const TrendIcon = directionIcon[direction];
+
+  return (
+    <div className={`group relative overflow-hidden rounded-xl border px-4 py-3 shadow-card transition-smooth hover:-translate-y-0.5 ${styles.card}`}>
+      <div className={`absolute inset-x-0 top-0 h-0.5 opacity-80 ${styles.bar}`} aria-hidden />
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground/80">
+          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ${styles.badge}`}>
+            {icon}
+          </span>
+          <span className="truncate pt-0.5">{label}</span>
+        </div>
+        <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold tabular-nums ring-1 ${styles.trend}`}>
+          <TrendIcon className="h-3 w-3" />
+          {trend}
+        </span>
+      </div>
+      <div className="font-display text-xl tabular-nums text-foreground/90">{value}</div>
+    </div>
+  );
+};
 
 const Dashboard = ({ expenses, loading, onDelete }: Props) => {
   const { t } = useLanguage();
