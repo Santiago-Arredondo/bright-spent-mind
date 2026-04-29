@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Flame } from "lucide-react";
+import { Droplets, Flame } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { getCategory } from "@/lib/categories";
@@ -43,11 +43,11 @@ export const BiggestLeak = ({ expenses }: Props) => {
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl p-6 border border-border shadow-card"
+      className="relative overflow-hidden rounded-2xl p-6 border border-warning/30 bg-warning-soft/55 shadow-card transition-smooth hover:-translate-y-0.5 hover:border-warning/45"
       style={
         cat
           ? {
-              background: `linear-gradient(135deg, hsl(${cat.color} / 0.18), hsl(${cat.color} / 0.04))`,
+              background: `linear-gradient(135deg, hsl(var(--warning-soft) / 0.92), hsl(${cat.color} / 0.11), hsl(var(--card) / 0.72))`,
               borderColor: `hsl(${cat.color} / 0.35)`,
             }
           : undefined
@@ -61,12 +61,11 @@ export const BiggestLeak = ({ expenses }: Props) => {
         />
       )}
       <div className="relative">
-        <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-            <Flame
-              className="h-3.5 w-3.5"
-              style={cat ? { color: `hsl(${cat.color})` } : undefined}
-            />
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-warning-soft text-warning ring-1 ring-warning/25">
+              <Droplets className="h-4 w-4" />
+            </span>
             {t("leak_label")}
           </div>
           {cat && (
@@ -88,12 +87,13 @@ export const BiggestLeak = ({ expenses }: Props) => {
           <>
             <div className="flex items-center gap-3 mb-2">
               <div
-                className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl shrink-0"
-                style={{ backgroundColor: `hsl(${cat.color} / 0.25)` }}
+                className="relative h-14 w-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 ring-1 ring-warning/25"
+                style={{ backgroundColor: `hsl(${cat.color} / 0.20)` }}
               >
+                <Flame className="absolute -right-1 -top-1 h-4 w-4 text-warning" aria-hidden />
                 {cat.emoji}
               </div>
-              <p className="font-display text-xl leading-snug">
+              <p className="font-display text-2xl leading-tight text-foreground">
                 {interpolate(t("leak_body"), { category: t(cat.labelKey) })}
               </p>
             </div>
