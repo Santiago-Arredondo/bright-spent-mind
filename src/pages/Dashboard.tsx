@@ -5,6 +5,7 @@ import { ExpenseList, type Expense } from "@/components/ExpenseList";
 import { CategoryChart } from "@/components/CategoryChart";
 import { AIInsight } from "@/components/AIInsight";
 import { SpendingProjection } from "@/components/SpendingProjection";
+import { BiggestLeak } from "@/components/BiggestLeak";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCategory } from "@/lib/categories";
@@ -95,6 +96,11 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
           )}
         </div>
       </div>
+
+      {/* Biggest money leak — highlighted */}
+      <section className="mb-6">
+        <BiggestLeak expenses={monthExpenses} />
+      </section>
 
       {/* Smart Insight + Projection */}
       <section className="mb-8 grid gap-4 md:grid-cols-2">

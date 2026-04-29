@@ -157,6 +157,12 @@ export const translations = {
   projection_body: { es: "A este ritmo, gastarás {amount} este mes.", en: "At this pace, you will spend {amount} this month." },
   projection_detail: { es: "Promedio diario {daily} · {days} días restantes", en: "Daily avg {daily} · {days} days left" },
   projection_empty: { es: "Registra un gasto para ver tu proyección.", en: "Log an expense to see your projection." },
+
+  // Biggest money leak
+  leak_label: { es: "Mayor fuga de dinero", en: "Biggest money leak" },
+  leak_body: { es: "Tu mayor categoría de gasto es {category}.", en: "Your biggest expense category is {category}." },
+  leak_detail: { es: "{amount} este mes · {pct} del total", en: "{amount} this month · {pct} of total" },
+  leak_empty: { es: "Registra gastos para descubrir tu mayor fuga.", en: "Log expenses to spot your biggest leak." },
 } as const;
 
 export type TKey = keyof typeof translations;
