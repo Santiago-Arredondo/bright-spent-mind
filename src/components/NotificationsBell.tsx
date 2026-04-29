@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { useNotifications } from "@/hooks/useNotifications";
 import type { Expense } from "./ExpenseList";
 import type { NotificationKind } from "@/lib/notifications";
@@ -37,6 +38,7 @@ interface Props {
 
 export const NotificationsBell = ({ expenses }: Props) => {
   const { t } = useLanguage();
+  const emptyMsg = useEmptyMessage("notifications");
   const { notifications, dismiss, dismissAll } = useNotifications(expenses);
   const count = notifications.length;
   const hasAny = count > 0;

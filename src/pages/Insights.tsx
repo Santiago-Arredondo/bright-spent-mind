@@ -4,6 +4,7 @@ import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { AIInsight } from "@/components/AIInsight";
 import { getCategory } from "@/lib/categories";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 
 interface Props {
   expenses: Expense[];
@@ -11,6 +12,7 @@ interface Props {
 
 const Insights = ({ expenses }: Props) => {
   const { t, lang } = useLanguage();
+  const trendEmpty = useEmptyMessage("trend");
   const locale = lang === "es" ? "es-ES" : "en-US";
 
   const { byMonth, topCat, biggest, dailyAvg, daysActive } = useMemo(() => {

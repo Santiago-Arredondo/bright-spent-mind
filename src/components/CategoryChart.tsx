@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/categories";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 export const CategoryChart = ({ expenses }: Props) => {
   const { t } = useLanguage();
+  const emptyMsg = useEmptyMessage("breakdown");
 
   const data = useMemo(() => {
     const totals: Record<string, number> = {};

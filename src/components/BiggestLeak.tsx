@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Flame } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { getCategory } from "@/lib/categories";
 import type { Expense } from "./ExpenseList";
 
@@ -13,6 +14,7 @@ const interpolate = (s: string, vars: Record<string, string>) =>
 
 export const BiggestLeak = ({ expenses }: Props) => {
   const { t } = useLanguage();
+  const emptyMsg = useEmptyMessage("leak");
 
   const { topId, topAmount, total, share } = useMemo(() => {
     const now = new Date();

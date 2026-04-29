@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { projectMonthSpending } from "@/lib/projection";
 import { cn } from "@/lib/utils";
 import type { Expense } from "./ExpenseList";
@@ -23,6 +24,7 @@ const PACE_STYLES: Record<Pace, { ring: string; bg: string; chip: string; icon: 
 
 export const SpendingProjection = ({ expenses, monthlyBaseline }: Props) => {
   const { t } = useLanguage();
+  const emptyMsg = useEmptyMessage("projection");
   const p = projectMonthSpending(expenses);
 
   const fmt = (n: number) => `$${n.toFixed(2)}`;
