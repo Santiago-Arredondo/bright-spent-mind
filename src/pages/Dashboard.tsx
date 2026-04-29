@@ -188,40 +188,41 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
 
       {/* 3. SUPPORTING METRICS — quiet strip. Lower visual weight. */}
       <div className="grid gap-3 sm:grid-cols-3 mb-8">
-        <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/80 mb-1">
-            <CalendarDays className="h-3 w-3" />
-            {t("daily_average_short")}
-          </div>
-          <p className="font-display text-xl tabular-nums text-foreground/90">
-            ${dailyAvg.toFixed(2)}
-          </p>
-        </div>
+        <MetricCard
+          label={t("daily_average_short")}
+          value={`$${dailyAvg.toFixed(2)}`}
+          icon={<CalendarDays className="h-3.5 w-3.5" />}
+          tone={dailyTone}
+          direction={dailyDirection}
+          trend={trendText(dailyDelta, previousDailyAvg > 0)}
+        />
 
-        <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/80 mb-1">
-            <TrendingUp className="h-3 w-3" />
-            {t("entries_this_month")}
-          </div>
-          <p className="font-display text-xl tabular-nums text-foreground/90">{count}</p>
-        </div>
+        <MetricCard
+          label={t("entries_this_month")}
+          value={count}
+          icon={<ReceiptText className="h-3.5 w-3.5" />}
+          tone={entryTone}
+          direction={entryDirection}
+          trend={trendText(entryDelta, previousCount > 0)}
+        />
 
-        <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/80 mb-1">
-            <Sparkles className="h-3 w-3" />
-            {t("most_used_category")}
-          </div>
-          {topCat ? (
-            <p className="font-display text-xl flex items-center gap-1.5 text-foreground/90">
+        <MetricCard
+          label={t("most_used_category")}
+          value={
+            topCat ? (
+              <span className="flex min-w-0 items-center gap-1.5">
               <span className="text-base">{topCat.emoji}</span>
               <span className="truncate">{t(topCat.labelKey)}</span>
-            </p>
+              </span>
           ) : (
-            <p className="font-display text-base text-muted-foreground">
-              {t("no_category_yet")}
-            </p>
-          )}
-        </div>
+              <span className="text-base text-muted-foreground">{t("no_category_yet")}</span>
+            )
+          }
+          icon={<Sparkles className="h-3.5 w-3.5" />}
+          tone={categoryTone}
+          direction={categoryDirection}
+          trend={monthTotal > 0 ? `${Math.round(topCategoryShare * 100)}%` : "—"}
+        />
       </div>
 
       {/* 4. CONTEXTUAL CARDS — leak + projection */}
