@@ -197,9 +197,10 @@ type CacheEntry = { ts: number; insight: string; recent: string[]; fingerprint: 
 const CACHE = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 60_000; // serve cached insight within 1 min for identical data
 
-function fingerprintSummary(s: ReturnType<typeof buildSummary>, lang: string) {
+function fingerprintSummary(s: ReturnType<typeof buildSummary>, lang: string, tone: Tone) {
   return [
     lang,
+    tone,
     s.period.month,
     s.totals.month_total,
     s.totals.entry_count,
@@ -209,6 +210,8 @@ function fingerprintSummary(s: ReturnType<typeof buildSummary>, lang: string) {
   ].join("::");
 }
 
+const isTone = (v: unknown): v is Tone => v === "soft" || v === "neutral" || v === "brutal";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -216,6 +219,7 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const expenses = Array.isArray(body?.expenses) ? body.expenses : [];
     const lang = body?.lang === "en" ? "en" : "es";
+    const tone: Tone = isTone(body?.tone) ? body.tone : "neutral";
     // Optional client-supplied list of recent insights to avoid repeating
     const clientPrev: string[] = Array.isArray(body?.previous_insights)
       ? body.previous_insights.filter((s: unknown) => typeof s === "string").slice(0, 5)
@@ -223,7 +227,7 @@ serve(async (req) => {
     // Stable per-caller key (auth header preferred, IP fallback) so cache + history don't bleed across users
     const authHeader = req.headers.get("authorization") ?? "";
     const ip = req.headers.get("x-forwarded-for") ?? "anon";
-    const callerKey = `${lang}:${authHeader || ip}`;
+    const callerKey = `${lang}:${tone}:${authHeader || ip}`;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
@@ -235,7 +239,7 @@ serve(async (req) => {
     }
 
     const summary = buildSummary(expenses);
-    const fingerprint = fingerprintSummary(summary, lang);
+    const fingerprint = fingerprintSummary(summary, lang, tone);
     const cached = CACHE.get(callerKey);
 
     // Cost guard #1: identical-data calls within TTL → return cached insight, skip LLM
@@ -263,7 +267,7 @@ serve(async (req) => {
         frequency_penalty: 0.4,
         max_tokens: 120,
         messages: [
-          { role: "system", content: SYSTEM_PROMPTS[lang] },
+          { role: "system", content: buildSystemPrompt(lang, tone) },
           { role: "user", content: USER_PROMPTS[lang](prompt, previous) },
         ],
       }),
