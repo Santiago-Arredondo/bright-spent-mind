@@ -192,6 +192,12 @@ const FALLBACK: Record<string, string> = {
   es: "Sigue registrando — pronto aparecerán los patrones.",
 };
 
+const fallbackResponse = (lang: string, summary: ReturnType<typeof buildSummary> | null, error: string) =>
+  new Response(JSON.stringify({ insight: FALLBACK[lang] ?? FALLBACK.es, summary, error, fallback: true }), {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
 // ---------- In-memory cache + cooldown (per-warm-instance, best-effort) ----------
 type CacheEntry = { ts: number; insight: string; recent: string[]; fingerprint: string };
 const CACHE = new Map<string, CacheEntry>();
@@ -259,8 +265,7 @@ serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        // OpenAI via Lovable AI Gateway — no separate OpenAI key needed
-        model: "openai/gpt-5-mini",
+        model: "google/gemini-3-flash-preview",
         // Higher temp + presence/frequency penalties = less repetition across calls
         temperature: 0.95,
         presence_penalty: 0.6,
@@ -292,7 +297,7 @@ serve(async (req) => {
     if (!response.ok) {
       const t = await response.text();
       console.error("AI error:", response.status, t);
-      throw new Error("AI gateway error");
+      return fallbackResponse(lang, summary, "AI_GATEWAY_ERROR");
     }
 
     const data = await response.json();
@@ -307,9 +312,6 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("insights error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return fallbackResponse("es", null, "SERVICE_FAILED");
   }
 });
