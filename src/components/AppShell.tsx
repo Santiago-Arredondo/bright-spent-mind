@@ -77,15 +77,26 @@ export const AppShell = ({ children, onAddClick, expenses }: Props) => {
           </Button>
           <Button
             onClick={onAddClick}
-            className="hidden md:inline-flex rounded-full bg-gradient-primary hover:opacity-90 shadow-glow"
+            size="lg"
+            className="cta-add hidden md:inline-flex rounded-full bg-gradient-primary text-primary-foreground font-semibold px-5 h-11 shadow-glow hover:bg-gradient-primary"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
             {t("add_expense")}
           </Button>
         </div>
       </header>
 
       <main>{children}</main>
+
+      {/* Desktop floating action button — always accessible */}
+      <button
+        onClick={onAddClick}
+        aria-label={t("add_expense")}
+        title={t("add_expense")}
+        className="cta-add cta-fab hidden md:flex fixed bottom-8 right-8 z-40 h-14 w-14 rounded-full bg-gradient-primary text-primary-foreground items-center justify-center"
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.5} />
+      </button>
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur">
@@ -108,10 +119,10 @@ export const AppShell = ({ children, onAddClick, expenses }: Props) => {
           })}
           <button
             onClick={onAddClick}
-            className="-mt-8 h-14 w-14 rounded-full bg-gradient-primary text-primary-foreground shadow-glow flex items-center justify-center"
+            className="cta-add cta-fab -mt-8 h-16 w-16 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center"
             aria-label={t("add_expense")}
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-7 w-7" strokeWidth={2.5} />
           </button>
           {navItems.slice(1).map((n) => {
             const active = location.pathname === n.to;

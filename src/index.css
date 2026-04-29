@@ -204,3 +204,63 @@
   0%, 100% { opacity: 0.5; transform: scale(1); }
   50%      { opacity: 0.95; transform: scale(1.08); }
 }
+
+/* Add Expense — primary CTA emphasis */
+@layer utilities {
+  .cta-add {
+    position: relative;
+    isolation: isolate;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease,
+                filter 0.25s ease;
+  }
+  .cta-add::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, hsl(var(--primary-glow)), hsl(var(--accent)), hsl(var(--primary-glow)));
+    background-size: 200% 200%;
+    z-index: -1;
+    opacity: 0.55;
+    filter: blur(10px);
+    animation: cta-glow 4s ease-in-out infinite;
+  }
+  .cta-add::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(120deg, transparent 30%, hsl(0 0% 100% / 0.35) 50%, transparent 70%);
+    background-size: 220% 100%;
+    background-position: 200% 0;
+    pointer-events: none;
+    transition: background-position 0.7s ease;
+    mix-blend-mode: overlay;
+  }
+  .cta-add:hover {
+    transform: translateY(-2px) scale(1.03);
+    filter: brightness(1.06);
+    box-shadow: 0 14px 38px -10px hsl(var(--primary) / 0.55);
+  }
+  .cta-add:hover::after { background-position: -20% 0; }
+  .cta-add:active {
+    transform: translateY(0) scale(0.96);
+    transition-duration: 0.08s;
+  }
+  .cta-fab {
+    box-shadow:
+      0 12px 32px -8px hsl(var(--primary) / 0.55),
+      0 0 0 6px hsl(var(--primary) / 0.08);
+  }
+  .cta-fab:hover {
+    box-shadow:
+      0 18px 44px -10px hsl(var(--primary) / 0.65),
+      0 0 0 10px hsl(var(--primary) / 0.10);
+  }
+}
+
+@keyframes cta-glow {
+  0%, 100% { background-position: 0% 50%; opacity: 0.5; }
+  50%      { background-position: 100% 50%; opacity: 0.8; }
+}
