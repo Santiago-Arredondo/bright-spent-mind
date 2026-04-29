@@ -26,7 +26,7 @@ export const CategoryChart = ({ expenses }: Props) => {
     return (
       <div className="bg-card rounded-3xl shadow-card border border-border p-6">
         <h3 className="font-display text-xl mb-2">{t("spending_by_category")}</h3>
-        <p className="text-sm text-muted-foreground">{t("breakdown_empty")}</p>
+        <p className="text-sm text-muted-foreground">{emptyMsg}</p>
       </div>
     );
   }

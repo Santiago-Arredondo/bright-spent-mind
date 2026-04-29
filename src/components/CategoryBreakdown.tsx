@@ -27,7 +27,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
     return (
       <div className="bg-card rounded-3xl shadow-card border border-border p-6">
         <h3 className="font-display text-xl mb-2">{t("where_it_goes")}</h3>
-        <p className="text-sm text-muted-foreground">{t("breakdown_empty")}</p>
+        <p className="text-sm text-muted-foreground">{emptyMsg}</p>
       </div>
     );
   }

@@ -85,7 +85,7 @@ const Insights = ({ expenses }: Props) => {
         <div className="md:col-span-3 bg-card rounded-3xl border border-border shadow-card p-6">
           <h3 className="font-display text-xl mb-5">{t("monthly_trend")}</h3>
           {monthEntries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("trend_empty")}</p>
+            <p className="text-sm text-muted-foreground">{trendEmpty}</p>
           ) : (
             <div className="flex items-end gap-3 h-48">
               {monthEntries.map(([k, v]) => {

@@ -83,7 +83,7 @@ export const SpendingProjection = ({ expenses, monthlyBaseline }: Props) => {
           </p>
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("projection_empty")}</p>
+        <p className="text-sm text-muted-foreground">{emptyMsg}</p>
       )}
     </div>
   );

@@ -95,7 +95,7 @@ export const NotificationsBell = ({ expenses }: Props) => {
         <div className={cn("max-h-96 overflow-y-auto", !hasAny && "py-8")}>
           {!hasAny ? (
             <p className="text-center text-sm text-muted-foreground px-6">
-              {t("notif_empty")}
+              {emptyMsg}
             </p>
           ) : (
             <ul className="divide-y divide-border">

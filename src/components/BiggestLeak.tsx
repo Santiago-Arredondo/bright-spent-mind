@@ -100,7 +100,7 @@ export const BiggestLeak = ({ expenses }: Props) => {
             </p>
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">{t("leak_empty")}</p>
+          <p className="text-sm text-muted-foreground">{emptyMsg}</p>
         )}
       </div>
     </div>
