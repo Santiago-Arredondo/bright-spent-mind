@@ -186,6 +186,10 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
         <AIInsight expenses={monthExpenses} />
       </section>
 
+      <section className="mb-8">
+        <BiggestLeak expenses={monthExpenses} />
+      </section>
+
       {/* 3. SUPPORTING METRICS — quiet strip. Lower visual weight. */}
       <div className="grid gap-3 sm:grid-cols-3 mb-8">
         <MetricCard
@@ -226,8 +230,7 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
       </div>
 
       {/* 4. CONTEXTUAL CARDS — leak + projection */}
-      <section className="mb-8 grid gap-4 md:grid-cols-2">
-        <BiggestLeak expenses={monthExpenses} />
+      <section className="mb-8">
         <SpendingProjection expenses={monthExpenses} />
       </section>
 
