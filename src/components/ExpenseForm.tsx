@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { es as esLocale } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CATEGORIES } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
@@ -12,17 +16,20 @@ const schema = z.object({
   amount: z.number().positive().max(1000000),
   category: z.string().min(1),
   note: z.string().max(140).optional(),
+  spent_at: z.date(),
 });
 
 interface Props {
-  onAdd: (e: { amount: number; category: string; note?: string }) => Promise<void>;
+  onAdd: (e: { amount: number; category: string; note?: string; spent_at?: string }) => Promise<void>;
 }
 
 export const ExpenseForm = ({ onAdd }: Props) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const dateLocale = lang === "es" ? esLocale : undefined;
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("food");
   const [note, setNote] = useState("");
+  const [date, setDate] = useState<Date>(new Date());
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -31,6 +38,7 @@ export const ExpenseForm = ({ onAdd }: Props) => {
       amount: parseFloat(amount),
       category,
       note: note.trim() || undefined,
+      spent_at: date,
     });
     if (!parsed.success) {
       toast.error(t("invalid_amount"));
@@ -42,9 +50,11 @@ export const ExpenseForm = ({ onAdd }: Props) => {
         amount: parsed.data.amount,
         category: parsed.data.category,
         note: parsed.data.note,
+        spent_at: parsed.data.spent_at.toISOString(),
       });
       setAmount("");
       setNote("");
+      setDate(new Date());
       toast.success(t("logged"));
     } catch {
       toast.error(t("save_error"));
@@ -91,6 +101,35 @@ export const ExpenseForm = ({ onAdd }: Props) => {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="mb-5">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("date")}</p>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal rounded-xl bg-secondary border-transparent hover:bg-secondary"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(date, "PPP", { locale: dateLocale })}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => d && setDate(d)}
+              disabled={(d) => d > new Date()}
+              initialFocus
+              locale={dateLocale}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <Input

@@ -81,6 +81,22 @@ export const translations = {
 
   // Language switcher
   language: { es: "Idioma", en: "Language" },
+
+  // Date filter / grouping
+  date: { es: "Fecha", en: "Date" },
+  pick_date: { es: "Elegir fecha", en: "Pick a date" },
+  date_range: { es: "Rango de fechas", en: "Date range" },
+  from: { es: "Desde", en: "From" },
+  to: { es: "Hasta", en: "To" },
+  clear: { es: "Limpiar", en: "Clear" },
+  all_dates: { es: "Todas las fechas", en: "All dates" },
+  group_by_date: { es: "Por fecha", en: "By date" },
+  group_by_category: { es: "Por categoría", en: "By category" },
+  preset_today: { es: "Hoy", en: "Today" },
+  preset_7d: { es: "Últimos 7 días", en: "Last 7 days" },
+  preset_30d: { es: "Últimos 30 días", en: "Last 30 days" },
+  preset_month: { es: "Este mes", en: "This month" },
+  no_results: { es: "Sin resultados con esos filtros.", en: "No results with these filters." },
 } as const;
 
 export type TKey = keyof typeof translations;

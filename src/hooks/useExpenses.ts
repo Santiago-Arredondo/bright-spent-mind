@@ -22,14 +22,21 @@ export const useExpenses = () => {
     load();
   }, []);
 
-  const addExpense = async (e: { amount: number; category: string; note?: string }) => {
+  const addExpense = async (e: { amount: number; category: string; note?: string; spent_at?: string }) => {
     const { data, error } = await supabase
       .from("expenses")
-      .insert({ amount: e.amount, category: e.category, note: e.note ?? null })
+      .insert({
+        amount: e.amount,
+        category: e.category,
+        note: e.note ?? null,
+        ...(e.spent_at ? { spent_at: e.spent_at } : {}),
+      })
       .select()
       .single();
     if (error) throw error;
-    setExpenses((prev) => [data as Expense, ...prev]);
+    setExpenses((prev) =>
+      [data as Expense, ...prev].sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
+    );
   };
 
   const deleteExpense = async (id: string) => {
