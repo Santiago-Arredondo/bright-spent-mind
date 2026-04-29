@@ -1,5 +1,5 @@
 import type { Lang } from "./i18n";
-import type { Tone } from "@/components/AIInsight";
+import type { Tone } from "./tone";
 
 export type EmptyKey =
   | "list"        // No expenses logged at all
