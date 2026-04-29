@@ -157,6 +157,9 @@ export const translations = {
   projection_body: { es: "A este ritmo, gastarás {amount} este mes.", en: "At this pace, you will spend {amount} this month." },
   projection_detail: { es: "Promedio diario {daily} · {days} días restantes", en: "Daily avg {daily} · {days} days left" },
   projection_empty: { es: "Registra un gasto para ver tu proyección.", en: "Log an expense to see your projection." },
+  pace_calm: { es: "En calma", en: "On track" },
+  pace_watch: { es: "Atento", en: "Watch" },
+  pace_over: { es: "Pasado", en: "Over" },
 
   // Biggest money leak
   leak_label: { es: "Mayor fuga de dinero", en: "Biggest money leak" },
