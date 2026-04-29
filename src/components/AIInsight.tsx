@@ -49,7 +49,7 @@ export const AIInsight = ({ expenses }: Props) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            <p className="text-xs uppercase tracking-wider opacity-80">{t("ai_insight")}</p>
+            <p className="text-xs uppercase tracking-wider opacity-80">{t("smart_insight")}</p>
           </div>
           <Button
             variant="ghost"
