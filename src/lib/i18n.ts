@@ -163,7 +163,7 @@ export const translations = {
 
   // Biggest money leak
   leak_label: { es: "Mayor fuga de dinero", en: "Biggest money leak" },
-  leak_body: { es: "Tu mayor categoría de gasto es {category}.", en: "Your biggest expense category is {category}." },
+  leak_body: { es: "Tu mayor fuga de dinero es: {category}", en: "Your biggest money leak is: {category}" },
   leak_detail: { es: "{amount} este mes · {pct} del total", en: "{amount} this month · {pct} of total" },
   leak_empty: { es: "Registra gastos para descubrir tu mayor fuga.", en: "Log expenses to spot your biggest leak." },
 } as const;
