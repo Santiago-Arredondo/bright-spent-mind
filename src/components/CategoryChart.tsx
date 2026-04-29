@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/categories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
+import { formatCOP } from "@/lib/money";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -44,7 +45,7 @@ export const CategoryChart = ({ expenses }: Props) => {
                 <span>{c.emoji}</span>
                 <span>{t(c.labelKey)}</span>
               </span>
-              <span className="tabular-nums font-medium">${c.value.toFixed(2)}</span>
+              <span className="tabular-nums font-medium">{formatCOP(c.value)}</span>
             </div>
             <div className="h-2 rounded-full bg-secondary overflow-hidden">
               <div
