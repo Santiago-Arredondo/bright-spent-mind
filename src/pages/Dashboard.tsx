@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { ArrowRight, TrendingUp, CalendarDays, Sparkles } from "lucide-react";
 import { ExpenseList, type Expense } from "@/components/ExpenseList";
-import { CategoryBreakdown } from "@/components/CategoryBreakdown";
+import { CategoryChart } from "@/components/CategoryChart";
 import { AIInsight } from "@/components/AIInsight";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getCategory } from "@/lib/categories";
 
 interface Props {
   expenses: Expense[];
@@ -15,21 +16,34 @@ interface Props {
 
 const Dashboard = ({ expenses, loading, onDelete }: Props) => {
   const { t } = useLanguage();
-  const { monthTotal, todayTotal, count } = useMemo(() => {
+
+  const { monthExpenses, monthTotal, dailyAvg, topCategoryId, count } = useMemo(() => {
     const now = new Date();
+    const monthExpenses: Expense[] = [];
+    const byCat: Record<string, number> = {};
     let monthTotal = 0;
-    let todayTotal = 0;
-    let count = 0;
     for (const e of expenses) {
       const d = new Date(e.spent_at);
       if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+        monthExpenses.push(e);
         monthTotal += Number(e.amount);
-        count++;
-        if (d.toDateString() === now.toDateString()) todayTotal += Number(e.amount);
+        byCat[e.category] = (byCat[e.category] || 0) + Number(e.amount);
       }
     }
-    return { monthTotal, todayTotal, count };
+    const daysSoFar = now.getDate();
+    const dailyAvg = daysSoFar > 0 ? monthTotal / daysSoFar : 0;
+    const topCategoryId =
+      Object.entries(byCat).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    return {
+      monthExpenses,
+      monthTotal,
+      dailyAvg,
+      topCategoryId,
+      count: monthExpenses.length,
+    };
   }, [expenses]);
+
+  const topCat = topCategoryId ? getCategory(topCategoryId) : null;
 
   return (
     <div className="max-w-6xl mx-auto px-6 pb-16">
@@ -41,22 +55,50 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
         <p className="text-muted-foreground max-w-md">{t("app_tagline")}</p>
       </section>
 
+      {/* Top stat cards */}
       <div className="grid gap-4 md:grid-cols-3 mb-8">
         <div className="bg-card rounded-2xl border border-border p-5 shadow-card">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t("today")}</p>
-          <p className="font-display text-3xl tabular-nums">${todayTotal.toFixed(2)}</p>
-        </div>
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-card">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t("entries_this_month")}</p>
-          <p className="font-display text-3xl tabular-nums">{count}</p>
-        </div>
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-card">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t("avg_per_entry")}</p>
-          <p className="font-display text-3xl tabular-nums">
-            ${count ? (monthTotal / count).toFixed(2) : "0.00"}
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <TrendingUp className="h-3.5 w-3.5" />
+            {t("total_spending")}
+          </div>
+          <p className="font-display text-3xl tabular-nums">${monthTotal.toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {count} {t("entries_this_month").toLowerCase()}
           </p>
         </div>
+
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-card">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <CalendarDays className="h-3.5 w-3.5" />
+            {t("daily_average_short")}
+          </div>
+          <p className="font-display text-3xl tabular-nums">${dailyAvg.toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("this_month")}</p>
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-card">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <Sparkles className="h-3.5 w-3.5" />
+            {t("most_used_category")}
+          </div>
+          {topCat ? (
+            <p className="font-display text-3xl flex items-center gap-2">
+              <span>{topCat.emoji}</span>
+              <span>{t(topCat.labelKey)}</span>
+            </p>
+          ) : (
+            <p className="font-display text-2xl text-muted-foreground">
+              {t("no_category_yet")}
+            </p>
+          )}
+        </div>
       </div>
+
+      {/* Smart Insight */}
+      <section className="mb-8">
+        <AIInsight expenses={monthExpenses} />
+      </section>
 
       <div className="grid gap-6 md:grid-cols-5">
         <section className="md:col-span-3 space-y-4">
@@ -72,8 +114,7 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
         </section>
 
         <aside className="md:col-span-2 space-y-6">
-          <AIInsight expenses={expenses} />
-          <CategoryBreakdown expenses={expenses.slice(0, 100)} />
+          <CategoryChart expenses={monthExpenses} />
           <Button variant="outline" asChild className="w-full rounded-xl">
             <Link to="/insights">
               <TrendingUp className="h-4 w-4" />
