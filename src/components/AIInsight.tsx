@@ -13,20 +13,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import type { Expense } from "./ExpenseList";
+import { readTone, TONE_KEY, type Tone } from "@/lib/tone";
+
+export type { Tone };
 
 interface Props {
   expenses: Expense[];
 }
 
-export type Tone = "soft" | "neutral" | "brutal";
-const TONE_KEY = "coin.tone";
 const CACHE_KEY = "coin.aiInsight.cache.v1";
 
-const getInitialTone = (): Tone => {
-  if (typeof window === "undefined") return "neutral";
-  const v = localStorage.getItem(TONE_KEY);
-  return v === "soft" || v === "neutral" || v === "brutal" ? v : "neutral";
-};
+const getInitialTone = (): Tone => readTone();
+
 
 // ---- Cache types & helpers ----
 interface CacheShape {
