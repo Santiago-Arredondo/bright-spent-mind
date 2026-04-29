@@ -59,12 +59,27 @@ export const BiggestLeak = ({ expenses }: Props) => {
         />
       )}
       <div className="relative">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground mb-3">
-          <Flame
-            className="h-3.5 w-3.5"
-            style={cat ? { color: `hsl(${cat.color})` } : undefined}
-          />
-          {t("leak_label")}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+            <Flame
+              className="h-3.5 w-3.5"
+              style={cat ? { color: `hsl(${cat.color})` } : undefined}
+            />
+            {t("leak_label")}
+          </div>
+          {cat && (
+            <span
+              className={
+                share >= 0.5
+                  ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold bg-alert/15 text-alert"
+                  : share >= 0.3
+                  ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold bg-warning/15 text-warning"
+                  : "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold bg-info/15 text-info"
+              }
+            >
+              {pct}
+            </span>
+          )}
         </div>
 
         {cat ? (
