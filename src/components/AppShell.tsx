@@ -88,6 +88,16 @@ export const AppShell = ({ children, onAddClick, expenses }: Props) => {
 
       <main>{children}</main>
 
+      {/* Desktop floating action button — always accessible */}
+      <button
+        onClick={onAddClick}
+        aria-label={t("add_expense")}
+        title={t("add_expense")}
+        className="cta-add cta-fab hidden md:flex fixed bottom-8 right-8 z-40 h-14 w-14 rounded-full bg-gradient-primary text-primary-foreground items-center justify-center"
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.5} />
+      </button>
+
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="flex items-center justify-around relative px-4 py-2">
