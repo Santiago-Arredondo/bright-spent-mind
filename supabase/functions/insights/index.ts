@@ -265,7 +265,7 @@ serve(async (req) => {
         temperature: 0.95,
         presence_penalty: 0.6,
         frequency_penalty: 0.4,
-        max_tokens: 120,
+        max_completion_tokens: 120,
         messages: [
           { role: "system", content: buildSystemPrompt(lang, tone) },
           { role: "user", content: USER_PROMPTS[lang](prompt, previous) },
