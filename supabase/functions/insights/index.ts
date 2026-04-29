@@ -185,29 +185,58 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { expenses, lang: rawLang } = await req.json();
-    const lang = rawLang === "en" ? "en" : "es";
+    const body = await req.json().catch(() => ({}));
+    const expenses = Array.isArray(body?.expenses) ? body.expenses : [];
+    const lang = body?.lang === "en" ? "en" : "es";
+    // Optional client-supplied list of recent insights to avoid repeating
+    const clientPrev: string[] = Array.isArray(body?.previous_insights)
+      ? body.previous_insights.filter((s: unknown) => typeof s === "string").slice(0, 5)
+      : [];
+    // Stable per-caller key (auth header preferred, IP fallback) so cache + history don't bleed across users
+    const authHeader = req.headers.get("authorization") ?? "";
+    const ip = req.headers.get("x-forwarded-for") ?? "anon";
+    const callerKey = `${lang}:${authHeader || ip}`;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
-    if (!expenses || expenses.length === 0) {
+    if (expenses.length === 0) {
       return new Response(JSON.stringify({ insight: EMPTY_INSIGHT[lang] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const summary = buildSummary(expenses);
+    const fingerprint = fingerprintSummary(summary, lang);
+    const cached = CACHE.get(callerKey);
+
+    // Cost guard #1: identical-data calls within TTL → return cached insight, skip LLM
+    if (cached && cached.fingerprint === fingerprint && Date.now() - cached.ts < CACHE_TTL_MS) {
+      return new Response(JSON.stringify({ insight: cached.insight, summary, cached: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Build "previous_insights" list — server-tracked recent + anything the client passes
+    const recent = cached?.recent ?? [];
+    const previous = Array.from(new Set([...clientPrev, ...recent])).slice(0, 5);
+
     const prompt = summaryToPrompt(summary);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        temperature: 0.9,
+        // OpenAI via Lovable AI Gateway — no separate OpenAI key needed
+        model: "openai/gpt-5-mini",
+        // Higher temp + presence/frequency penalties = less repetition across calls
+        temperature: 0.95,
+        presence_penalty: 0.6,
+        frequency_penalty: 0.4,
+        max_tokens: 120,
         messages: [
           { role: "system", content: SYSTEM_PROMPTS[lang] },
-          { role: "user", content: USER_PROMPTS[lang](prompt) },
+          { role: "user", content: USER_PROMPTS[lang](prompt, previous) },
         ],
       }),
     });
@@ -235,9 +264,13 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const insight = data.choices?.[0]?.message?.content ?? FALLBACK[lang];
+    const insight: string = (data.choices?.[0]?.message?.content ?? FALLBACK[lang]).trim();
 
-    return new Response(JSON.stringify({ insight, summary }), {
+    // Update cache: keep last 5 insights for anti-repetition
+    const nextRecent = [insight, ...recent.filter((r) => r !== insight)].slice(0, 5);
+    CACHE.set(callerKey, { ts: Date.now(), insight, recent: nextRecent, fingerprint });
+
+    return new Response(JSON.stringify({ insight, summary, cached: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
