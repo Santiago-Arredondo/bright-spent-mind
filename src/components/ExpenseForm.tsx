@@ -35,6 +35,7 @@ export const ExpenseForm = ({ onAdd }: Props) => {
   const [note, setNote] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [busy, setBusy] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   // Tracks whether the user has manually changed the category for the current note.
   const userTouchedCategory = useRef(false);
   const [suggestion, setSuggestion] = useState<{ category: string; source: string } | null>(null);
@@ -92,6 +93,8 @@ export const ExpenseForm = ({ onAdd }: Props) => {
       setNote("");
       setDate(new Date());
       userTouchedCategory.current = false;
+      setJustAdded(true);
+      window.setTimeout(() => setJustAdded(false), 520);
       toast.success(t("logged"));
     } catch {
       toast.error(t("save_error"));
@@ -101,7 +104,14 @@ export const ExpenseForm = ({ onAdd }: Props) => {
   };
 
   return (
-    <form onSubmit={submit} className="bg-card rounded-3xl shadow-card p-6 md:p-8 border border-border">
+    <form
+      onSubmit={submit}
+      className={cn(
+        "relative overflow-hidden bg-card rounded-3xl shadow-card p-6 md:p-8 border border-border transition-smooth",
+        justAdded && "expense-pop border-primary/30 shadow-glow",
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 expense-shimmer opacity-0" aria-hidden />
       <h2 className="font-display text-2xl mb-5">{t("quick_add")}</h2>
 
       <div className="flex items-baseline gap-2 mb-6">
@@ -135,10 +145,10 @@ export const ExpenseForm = ({ onAdd }: Props) => {
               type="button"
               onClick={() => pickCategory(c.id)}
               className={cn(
-                "px-3 py-2 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border",
+                "px-3 py-2 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border hover:-translate-y-0.5 active:scale-95",
                 category === c.id
-                  ? "bg-primary text-primary-foreground border-primary shadow-glow"
-                  : "bg-secondary border-transparent hover:border-border"
+                  ? "bg-primary text-primary-foreground border-primary shadow-glow scale-[1.03]"
+                  : "bg-secondary border-transparent hover:border-border hover:bg-muted"
               )}
             >
               <span>{c.emoji}</span>
@@ -182,15 +192,15 @@ export const ExpenseForm = ({ onAdd }: Props) => {
         value={note}
         onChange={(e) => setNote(e.target.value)}
         maxLength={140}
-        className="rounded-xl bg-secondary border-transparent mb-5"
+          className="rounded-xl bg-secondary border-transparent mb-5 transition-smooth focus-visible:-translate-y-0.5 focus-visible:shadow-card"
       />
 
       <Button
         type="submit"
         disabled={busy || !amount}
-        className="w-full rounded-xl h-12 bg-gradient-primary hover:opacity-90 transition-smooth shadow-glow text-base"
+        className="w-full rounded-xl h-12 bg-gradient-primary hover:opacity-95 transition-smooth shadow-glow text-base cta-add"
       >
-        <Plus className="mr-1 h-5 w-5" />
+        <Plus className={cn("mr-1 h-5 w-5 transition-transform", busy && "animate-spin")} />
         {busy ? t("saving") : t("add_expense")}
       </Button>
     </form>
