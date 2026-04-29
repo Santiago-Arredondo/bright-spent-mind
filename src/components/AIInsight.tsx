@@ -19,20 +19,85 @@ interface Props {
 
 export type Tone = "soft" | "neutral" | "brutal";
 const TONE_KEY = "coin.tone";
+const CACHE_KEY = "coin.aiInsight.cache.v1";
+
 const getInitialTone = (): Tone => {
   if (typeof window === "undefined") return "neutral";
   const v = localStorage.getItem(TONE_KEY);
   return v === "soft" || v === "neutral" || v === "brutal" ? v : "neutral";
 };
 
+// ---- Cache types & helpers ----
+interface CacheShape {
+  insight: string;
+  fingerprint: string;
+  date: string; // YYYY-MM-DD
+  lang: string;
+  tone: Tone;
+  recent: string[];
+}
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * Fingerprint represents the "shape" of spending. Small additions don't
+ * trigger a refresh; meaningful changes (significant total delta, new top
+ * category, big jump in entries) do.
+ */
+const buildFingerprint = (expenses: Expense[]): string => {
+  const now = new Date();
+  const m = now.getMonth();
+  const y = now.getFullYear();
+  let monthTotal = 0;
+  let entries = 0;
+  const byCat: Record<string, number> = {};
+  for (const e of expenses) {
+    const d = new Date(e.spent_at);
+    if (d.getMonth() === m && d.getFullYear() === y) {
+      const amt = Number(e.amount) || 0;
+      monthTotal += amt;
+      entries += 1;
+      byCat[e.category] = (byCat[e.category] || 0) + amt;
+    }
+  }
+  const topCat =
+    Object.entries(byCat).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "none";
+  // Bucket the total to ~10% steps so tiny additions don't invalidate.
+  const totalBucket = Math.round(monthTotal / Math.max(20, monthTotal * 0.1));
+  // Bucket entries every 3 to absorb single-add noise.
+  const entriesBucket = Math.floor(entries / 3);
+  return `${y}-${m}|${totalBucket}|${entriesBucket}|${topCat}`;
+};
+
+const readCache = (): CacheShape | null => {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.insight === "string" && typeof parsed?.fingerprint === "string") {
+      return parsed as CacheShape;
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+};
+
+const writeCache = (c: CacheShape) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(c));
+  } catch {
+    /* ignore */
+  }
+};
+
 export const AIInsight = ({ expenses }: Props) => {
   const { t, lang } = useLanguage();
-  const [insight, setInsight] = useState<string>("");
+  const [insight, setInsight] = useState<string>(() => readCache()?.insight ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [tone, setToneState] = useState<Tone>(getInitialTone);
-  // Keep last few insights to send back so the model picks a different angle
-  const recentRef = useRef<string[]>([]);
+  const recentRef = useRef<string[]>(readCache()?.recent ?? []);
 
   const setTone = (next: Tone) => {
     setToneState(next);
@@ -43,7 +108,25 @@ export const AIInsight = ({ expenses }: Props) => {
     }
   };
 
-  const fetchInsight = async () => {
+  const fetchInsight = async (opts: { force?: boolean } = {}) => {
+    const fingerprint = buildFingerprint(expenses);
+    const cached = readCache();
+
+    // Cache hit: same day, same lang/tone, same fingerprint → reuse, no API call.
+    if (
+      !opts.force &&
+      cached &&
+      cached.insight &&
+      cached.date === todayStr() &&
+      cached.lang === lang &&
+      cached.tone === tone &&
+      cached.fingerprint === fingerprint
+    ) {
+      setInsight(cached.insight);
+      recentRef.current = cached.recent ?? [];
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -63,6 +146,14 @@ export const AIInsight = ({ expenses }: Props) => {
         setInsight(next);
         if (next) {
           recentRef.current = [next, ...recentRef.current.filter((r) => r !== next)].slice(0, 5);
+          writeCache({
+            insight: next,
+            fingerprint,
+            date: todayStr(),
+            lang,
+            tone,
+            recent: recentRef.current,
+          });
         }
       }
     } catch (e) {
@@ -72,12 +163,16 @@ export const AIInsight = ({ expenses }: Props) => {
     }
   };
 
-  // refetch when language or tone changes (and on initial load with expenses)
+  // Auto-refresh only when truly needed (new day, lang/tone change, or
+  // significant data shift). Identical state → cached result, zero API calls.
   useEffect(() => {
-    if (expenses.length > 0) fetchInsight();
-    else setInsight("");
+    if (expenses.length === 0) {
+      setInsight("");
+      return;
+    }
+    fetchInsight();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang, tone, expenses.length > 0]);
+  }, [lang, tone, buildFingerprint(expenses)]);
 
   const toneLabel: Record<Tone, string> = {
     soft: t("tone_soft"),
@@ -136,7 +231,7 @@ export const AIInsight = ({ expenses }: Props) => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={fetchInsight}
+              onClick={() => fetchInsight({ force: true })}
               disabled={loading || expenses.length === 0}
               className="h-7 w-7 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
             >
