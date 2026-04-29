@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,19 +14,29 @@ export const AIInsight = ({ expenses }: Props) => {
   const [insight, setInsight] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  // Keep last few insights to send back so the model picks a different angle
+  const recentRef = useRef<string[]>([]);
 
   const fetchInsight = async () => {
     setLoading(true);
     setError("");
     try {
       const { data, error } = await supabase.functions.invoke("insights", {
-        body: { expenses: expenses.slice(0, 50), lang },
+        body: {
+          expenses: expenses.slice(0, 50),
+          lang,
+          previous_insights: recentRef.current,
+        },
       });
       if (error) throw error;
       if (data?.error) {
         setError(data.error);
       } else {
-        setInsight(data?.insight ?? "");
+        const next: string = data?.insight ?? "";
+        setInsight(next);
+        if (next) {
+          recentRef.current = [next, ...recentRef.current.filter((r) => r !== next)].slice(0, 5);
+        }
       }
     } catch (e) {
       setError(t("ai_error"));
