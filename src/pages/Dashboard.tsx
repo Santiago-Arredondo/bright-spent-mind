@@ -4,6 +4,7 @@ import { ArrowRight, TrendingUp, CalendarDays, Sparkles } from "lucide-react";
 import { ExpenseList, type Expense } from "@/components/ExpenseList";
 import { CategoryChart } from "@/components/CategoryChart";
 import { AIInsight } from "@/components/AIInsight";
+import { SpendingProjection } from "@/components/SpendingProjection";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCategory } from "@/lib/categories";
@@ -95,9 +96,10 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
         </div>
       </div>
 
-      {/* Smart Insight */}
-      <section className="mb-8">
+      {/* Smart Insight + Projection */}
+      <section className="mb-8 grid gap-4 md:grid-cols-2">
         <AIInsight expenses={monthExpenses} />
+        <SpendingProjection expenses={monthExpenses} />
       </section>
 
       <div className="grid gap-6 md:grid-cols-5">
