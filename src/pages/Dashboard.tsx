@@ -18,6 +18,7 @@ import { BiggestLeak } from "@/components/BiggestLeak";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCategory } from "@/lib/categories";
+import { formatCOP } from "@/lib/money";
 
 interface Props {
   expenses: Expense[];
@@ -171,7 +172,7 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
           {t("this_month")}
         </p>
         <h1 className="font-display tabular-nums tracking-tighter text-foreground text-7xl md:text-8xl lg:text-9xl leading-[0.95] mb-4">
-          ${monthTotal.toFixed(2)}
+          {formatCOP(monthTotal)}
         </h1>
         <p className="text-sm text-muted-foreground max-w-md flex items-center gap-2">
           <span className="inline-block h-1 w-6 rounded-full bg-gradient-primary" />
@@ -194,7 +195,7 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
       <div className="grid gap-3 sm:grid-cols-3 mb-8">
         <MetricCard
           label={t("daily_average_short")}
-          value={`$${dailyAvg.toFixed(2)}`}
+          value={formatCOP(dailyAvg)}
           icon={<CalendarDays className="h-3.5 w-3.5" />}
           tone={dailyTone}
           direction={dailyDirection}
