@@ -128,20 +128,30 @@ const SYSTEM_PROMPTS: Record<string, string> = {
   en: `You are a witty, honest friend who happens to be good with money — not a corporate finance app.
 Reply in 2-3 short sentences in English. Max ~50 words.
 Tone: warm, slightly humorous, gently teasing when warranted, never preachy or judgmental. Think clever friend, not lecturing parent.
-Be specific: reference an actual category, amount, trend, or pattern from the structured summary. No generic advice like "track your spending" or "create a budget."
-Mention one concrete observation and, if useful, one small suggestion or playful nudge.
+Be specific and ACTIONABLE: reference an actual category, amount, trend, or pattern from the structured summary, and end with one concrete, doable nudge (not generic advice like "track your spending" or "make a budget").
+If "previous_insights" is provided, write something clearly DIFFERENT — different angle, different category or pattern, different phrasing. Do not repeat the same opening or observation.
 Plain prose only. No bullet lists. No markdown. No emojis unless one really lands. Don't start with "It looks like" or "I notice."`,
   es: `Eres un amigo ingenioso y honesto que resulta ser bueno con el dinero — no una app financiera corporativa.
 Responde en 2-3 oraciones cortas en español. Máximo ~50 palabras.
-Tono: cálido, ligeramente humorístico, con bromas suaves cuando corresponda, nunca moralista ni con juicios. Piensa amigo astuto, no padre regañón.
-Sé específico: menciona una categoría, monto, tendencia o patrón real del resumen estructurado. Nada de consejos genéricos como "lleva un control" o "haz un presupuesto."
-Menciona una observación concreta y, si es útil, una pequeña sugerencia o empujón juguetón.
+Tono: cálido, ligeramente humorístico, con bromas suaves cuando corresponda, nunca moralista ni con juicios.
+Sé específico y ACCIONABLE: menciona una categoría, monto, tendencia o patrón real del resumen, y termina con un pequeño empujón concreto y realizable (nada de "lleva un control" o "haz un presupuesto").
+Si te dan "previous_insights", escribe algo claramente DISTINTO — otro ángulo, otra categoría o patrón, otra forma de empezar. No repitas la misma observación ni el mismo arranque.
 Solo prosa simple. Sin viñetas. Sin markdown. Sin emojis a menos que alguno encaje perfecto. No empieces con "Parece que" ni "Noto que."`,
 };
 
-const USER_PROMPTS: Record<string, (summary: string) => string> = {
-  en: (summary) => `Structured monthly summary:\n\n${summary}\n\nGive me one short, human insight grounded in this data.`,
-  es: (summary) => `Resumen mensual estructurado:\n\n${summary}\n\nDame un análisis breve y humano, anclado en estos datos.`,
+const USER_PROMPTS: Record<string, (summary: string, previous: string[]) => string> = {
+  en: (summary, previous) =>
+    `Structured monthly summary:\n\n${summary}\n\n${
+      previous.length
+        ? `previous_insights (do NOT repeat these — pick a different angle):\n${previous.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n`
+        : ""
+    }Give me one short, human, actionable insight grounded in this data.`,
+  es: (summary, previous) =>
+    `Resumen mensual estructurado:\n\n${summary}\n\n${
+      previous.length
+        ? `previous_insights (NO los repitas — toma otro ángulo):\n${previous.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n`
+        : ""
+    }Dame un análisis breve, humano y accionable anclado en estos datos.`,
 };
 
 const EMPTY_INSIGHT: Record<string, string> = {
@@ -153,6 +163,23 @@ const FALLBACK: Record<string, string> = {
   en: "Keep tracking — patterns will emerge soon.",
   es: "Sigue registrando — pronto aparecerán los patrones.",
 };
+
+// ---------- In-memory cache + cooldown (per-warm-instance, best-effort) ----------
+type CacheEntry = { ts: number; insight: string; recent: string[]; fingerprint: string };
+const CACHE = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 60_000; // serve cached insight within 1 min for identical data
+
+function fingerprintSummary(s: ReturnType<typeof buildSummary>, lang: string) {
+  return [
+    lang,
+    s.period.month,
+    s.totals.month_total,
+    s.totals.entry_count,
+    s.trend.direction,
+    s.top_categories.map((c) => `${c.category}:${c.total}`).join("|"),
+    s.patterns.join("|"),
+  ].join("::");
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
