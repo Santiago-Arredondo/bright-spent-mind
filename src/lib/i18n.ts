@@ -151,6 +151,12 @@ export const translations = {
   notif_outlier_body: { es: "{amount} en {category} pesa bastante en tu semana.", en: "{amount} on {category} is a big chunk of your week." },
   notif_streak_title: { es: "Buen comienzo", en: "Nice start" },
   notif_streak_body: { es: "Registra otro gasto para empezar a ver patrones.", en: "Log another expense and patterns will start showing up." },
+
+  // Projection
+  projection_title: { es: "Proyección del mes", en: "Month projection" },
+  projection_body: { es: "A este ritmo, gastarás {amount} este mes.", en: "At this pace, you will spend {amount} this month." },
+  projection_detail: { es: "Promedio diario {daily} · {days} días restantes", en: "Daily avg {daily} · {days} days left" },
+  projection_empty: { es: "Registra un gasto para ver tu proyección.", en: "Log an expense to see your projection." },
 } as const;
 
 export type TKey = keyof typeof translations;
