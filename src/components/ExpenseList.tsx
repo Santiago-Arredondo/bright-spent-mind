@@ -59,12 +59,13 @@ export const ExpenseList = ({ expenses, onDelete }: Props) => {
               return (
                 <div
                   key={e.id}
-                  className={`group flex items-center gap-3 p-4 ${
+                  className={`group flex items-center gap-3 p-4 transition-smooth animate-fade-in-up hover:bg-muted/45 ${
                     i !== items.length - 1 ? "border-b border-border" : ""
                   }`}
+                  style={{ animationDelay: `${Math.min(i * 35, 140)}ms` }}
                 >
                   <div
-                    className="h-10 w-10 rounded-full flex items-center justify-center text-lg shrink-0"
+                    className="h-10 w-10 rounded-full flex items-center justify-center text-lg shrink-0 transition-smooth group-hover:scale-110 group-hover:rotate-[-3deg]"
                     style={{ backgroundColor: `hsl(${cat.color} / 0.15)` }}
                   >
                     {cat.emoji}
@@ -73,12 +74,12 @@ export const ExpenseList = ({ expenses, onDelete }: Props) => {
                     <p className="font-medium truncate">{e.note || catLabel}</p>
                     <p className="text-xs text-muted-foreground">{catLabel}</p>
                   </div>
-                  <p className="font-display text-lg tabular-nums">${Number(e.amount).toFixed(2)}</p>
+                  <p className="font-display text-lg tabular-nums transition-smooth group-hover:text-primary">${Number(e.amount).toFixed(2)}</p>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => onDelete(e.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive"
+                    className="opacity-0 translate-x-1 group-hover:translate-x-0 group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
