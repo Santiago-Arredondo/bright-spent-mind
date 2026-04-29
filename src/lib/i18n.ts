@@ -118,6 +118,14 @@ export const translations = {
   auth_bad_creds: { es: "Correo o contraseña incorrectos.", en: "Wrong email or password." },
   sign_out: { es: "Cerrar sesión", en: "Sign out" },
   auto_detected: { es: "Detectado", en: "Auto-detected" },
+
+  // Dashboard analytics
+  total_spending: { es: "Gasto total", en: "Total spending" },
+  daily_average_short: { es: "Promedio diario", en: "Daily average" },
+  most_used_category: { es: "Categoría más usada", en: "Most used category" },
+  spending_by_category: { es: "Gasto por categoría", en: "Spending by category" },
+  smart_insight: { es: "Análisis inteligente", en: "Smart Insight" },
+  no_category_yet: { es: "Aún no hay datos", en: "No data yet" },
 } as const;
 
 export type TKey = keyof typeof translations;
