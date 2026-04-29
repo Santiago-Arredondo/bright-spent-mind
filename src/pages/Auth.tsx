@@ -83,7 +83,9 @@ const Auth = () => {
           <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
             <Wallet className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-display text-xl">Coin</span>
+          <span className="font-display text-xl tracking-tight">
+            Flowbit<span className="text-primary">.</span>
+          </span>
         </div>
         <LanguageToggle />
       </header>

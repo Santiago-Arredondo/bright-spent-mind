@@ -50,11 +50,16 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
   return (
     <div className="max-w-6xl mx-auto px-6 pb-16">
       <section className="mb-8">
-        <p className="text-sm text-muted-foreground mb-1">{t("this_month")}</p>
-        <h1 className="font-display text-5xl md:text-6xl tabular-nums mb-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+          {t("this_month")}
+        </p>
+        <h1 className="font-display text-5xl md:text-6xl tabular-nums mb-3 tracking-tight">
           ${monthTotal.toFixed(2)}
         </h1>
-        <p className="text-muted-foreground max-w-md">{t("app_tagline")}</p>
+        <p className="text-muted-foreground max-w-md flex items-center gap-2">
+          <span className="inline-block h-1 w-6 rounded-full bg-gradient-primary" />
+          {t("app_tagline")}
+        </p>
       </section>
 
       {/* Top stat cards */}

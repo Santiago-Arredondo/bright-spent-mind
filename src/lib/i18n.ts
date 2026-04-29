@@ -2,7 +2,7 @@ export type Lang = "es" | "en";
 
 export const translations = {
   // Brand & nav
-  app_tagline: { es: "Una forma más amable de cuidar tu dinero — registra rápido, aprende con calma.", en: "A friendlier way to keep tabs on your money — log fast, learn gently." },
+  app_tagline: { es: "Tu dinero, con más claridad", en: "Your money, with clarity" },
   nav_dashboard: { es: "Inicio", en: "Dashboard" },
   nav_insights: { es: "Análisis", en: "Insights" },
   nav_history: { es: "Historial", en: "History" },
