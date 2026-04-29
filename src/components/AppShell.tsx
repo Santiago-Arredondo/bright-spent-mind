@@ -77,9 +77,10 @@ export const AppShell = ({ children, onAddClick, expenses }: Props) => {
           </Button>
           <Button
             onClick={onAddClick}
-            className="hidden md:inline-flex rounded-full bg-gradient-primary hover:opacity-90 shadow-glow"
+            size="lg"
+            className="cta-add hidden md:inline-flex rounded-full bg-gradient-primary text-primary-foreground font-semibold px-5 h-11 shadow-glow hover:bg-gradient-primary"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
             {t("add_expense")}
           </Button>
         </div>
