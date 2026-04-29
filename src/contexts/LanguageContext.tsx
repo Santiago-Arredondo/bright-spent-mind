@@ -8,7 +8,13 @@ interface Ctx {
   t: (key: TKey) => string;
 }
 
-const LanguageContext = createContext<Ctx | undefined>(undefined);
+const defaultCtx: Ctx = {
+  lang: "es",
+  setLang: () => {},
+  t: (key) => translate(key, "es"),
+};
+
+const LanguageContext = createContext<Ctx>(defaultCtx);
 
 const STORAGE_KEY = "coin.lang";
 
@@ -80,8 +86,4 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
-export const useLanguage = () => {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
-  return ctx;
-};
+export const useLanguage = () => useContext(LanguageContext);
