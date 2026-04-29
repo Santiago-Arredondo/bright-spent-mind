@@ -117,6 +117,7 @@ export const translations = {
   auth_already: { es: "Ese correo ya está registrado. Inicia sesión.", en: "That email is already registered. Sign in instead." },
   auth_bad_creds: { es: "Correo o contraseña incorrectos.", en: "Wrong email or password." },
   sign_out: { es: "Cerrar sesión", en: "Sign out" },
+  auto_detected: { es: "Detectado", en: "Auto-detected" },
 } as const;
 
 export type TKey = keyof typeof translations;
