@@ -1,8 +1,9 @@
-import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Sparkles, History as HistoryIcon, Plus, Wallet } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Sparkles, History as HistoryIcon, Plus, Wallet, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { LanguageToggle } from "./LanguageToggle";
 
 interface Props {
@@ -12,7 +13,14 @@ interface Props {
 
 export const AppShell = ({ children, onAddClick }: Props) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useLanguage();
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
 
   const navItems = [
     { to: "/", label: t("nav_dashboard"), icon: LayoutDashboard },
@@ -51,6 +59,16 @@ export const AppShell = ({ children, onAddClick }: Props) => {
 
         <div className="flex items-center gap-2">
           <LanguageToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSignOut}
+            aria-label={t("sign_out")}
+            title={t("sign_out")}
+            className="rounded-full text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
           <Button
             onClick={onAddClick}
             className="hidden md:inline-flex rounded-full bg-gradient-primary hover:opacity-90 shadow-glow"
