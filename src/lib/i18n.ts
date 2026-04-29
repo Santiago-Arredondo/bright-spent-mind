@@ -126,6 +126,15 @@ export const translations = {
   spending_by_category: { es: "Gasto por categoría", en: "Spending by category" },
   smart_insight: { es: "Análisis inteligente", en: "Smart Insight" },
   no_category_yet: { es: "Aún no hay datos", en: "No data yet" },
+
+  // Tone
+  tone: { es: "Tono", en: "Tone" },
+  tone_soft: { es: "Suave", en: "Soft" },
+  tone_neutral: { es: "Neutral", en: "Neutral" },
+  tone_brutal: { es: "Brutal", en: "Brutal" },
+  tone_soft_desc: { es: "Cálido y alentador", en: "Warm and supportive" },
+  tone_neutral_desc: { es: "Claro e informativo", en: "Clear and informative" },
+  tone_brutal_desc: { es: "Directo, con sarcasmo suave", en: "Direct, lightly sarcastic" },
 } as const;
 
 export type TKey = keyof typeof translations;
