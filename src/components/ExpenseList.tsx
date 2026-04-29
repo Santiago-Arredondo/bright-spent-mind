@@ -3,6 +3,7 @@ import { getCategory } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
+import { formatCOP } from "@/lib/money";
 
 export interface Expense {
   id: string;
@@ -74,7 +75,7 @@ export const ExpenseList = ({ expenses, onDelete }: Props) => {
                     <p className="font-medium truncate">{e.note || catLabel}</p>
                     <p className="text-xs text-muted-foreground">{catLabel}</p>
                   </div>
-                  <p className="font-display text-lg tabular-nums transition-smooth group-hover:text-primary">${Number(e.amount).toFixed(2)}</p>
+                  <p className="font-display text-lg tabular-nums transition-smooth group-hover:text-primary">{formatCOP(e.amount)}</p>
                   <Button
                     variant="ghost"
                     size="icon"
