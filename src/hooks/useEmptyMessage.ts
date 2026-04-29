@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Tone } from "@/components/AIInsight";
+import { readTone, TONE_KEY, type Tone } from "@/lib/tone";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getEmptyMessage, type EmptyKey } from "@/lib/emptyMessages";
-
-const TONE_KEY = "coin.tone";
-
-const readTone = (): Tone => {
-  if (typeof window === "undefined") return "neutral";
-  const v = localStorage.getItem(TONE_KEY);
-  return v === "soft" || v === "neutral" || v === "brutal" ? v : "neutral";
-};
 
 /**
  * Returns a tone- and language-aware empty-state message.
