@@ -107,11 +107,23 @@ const MetricCard = ({
 const Dashboard = ({ expenses, loading, onDelete }: Props) => {
   const { t } = useLanguage();
 
-  const { monthExpenses, monthTotal, dailyAvg, topCategoryId, count } = useMemo(() => {
+  const {
+    monthExpenses,
+    monthTotal,
+    dailyAvg,
+    topCategoryId,
+    topCategoryTotal,
+    count,
+    previousDailyAvg,
+    previousCount,
+  } = useMemo(() => {
     const now = new Date();
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const monthExpenses: Expense[] = [];
     const byCat: Record<string, number> = {};
     let monthTotal = 0;
+    let previousTotal = 0;
+    let previousCount = 0;
     for (const e of expenses) {
       const d = new Date(e.spent_at);
       if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
@@ -119,21 +131,37 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
         monthTotal += Number(e.amount);
         byCat[e.category] = (byCat[e.category] || 0) + Number(e.amount);
       }
+      if (d.getMonth() === previousMonth.getMonth() && d.getFullYear() === previousMonth.getFullYear()) {
+        previousTotal += Number(e.amount);
+        previousCount += 1;
+      }
     }
     const daysSoFar = now.getDate();
     const dailyAvg = daysSoFar > 0 ? monthTotal / daysSoFar : 0;
-    const topCategoryId =
-      Object.entries(byCat).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    const topCategory = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0] ?? null;
+    const previousDailyAvg = previousTotal / Math.max(1, daysSoFar);
     return {
       monthExpenses,
       monthTotal,
       dailyAvg,
-      topCategoryId,
+      topCategoryId: topCategory?.[0] ?? null,
+      topCategoryTotal: topCategory?.[1] ?? 0,
       count: monthExpenses.length,
+      previousDailyAvg,
+      previousCount,
     };
   }, [expenses]);
 
   const topCat = topCategoryId ? getCategory(topCategoryId) : null;
+  const dailyDelta = previousDailyAvg > 0 ? (dailyAvg - previousDailyAvg) / previousDailyAvg : 0;
+  const dailyDirection = getDirection(dailyDelta);
+  const dailyTone: MetricTone = dailyDirection === "up" ? (dailyDelta > 0.35 ? "alert" : "warning") : "success";
+  const entryDelta = previousCount > 0 ? (count - previousCount) / previousCount : 0;
+  const entryDirection = getDirection(entryDelta, 0.15);
+  const entryTone: MetricTone = entryDirection === "up" ? "success" : entryDirection === "down" ? "warning" : "success";
+  const topCategoryShare = monthTotal > 0 ? topCategoryTotal / monthTotal : 0;
+  const categoryDirection: MetricDirection = topCategoryShare >= 0.45 ? "up" : topCategoryShare >= 0.25 ? "flat" : "down";
+  const categoryTone: MetricTone = topCategoryShare >= 0.45 ? "alert" : topCategoryShare >= 0.25 ? "warning" : "success";
 
   return (
     <div className="max-w-6xl mx-auto px-6 pb-16">
