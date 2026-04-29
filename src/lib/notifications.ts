@@ -1,6 +1,7 @@
 import type { Expense } from "@/components/ExpenseList";
 import { getCategory } from "@/lib/categories";
 import { translations, type Lang, type TKey } from "@/lib/i18n";
+import type { Tone } from "@/lib/tone";
 
 export type NotificationKind =
   | "no_log_today"
@@ -38,6 +39,67 @@ const interpolate = (template: string, vars: Record<string, string | number>) =>
 
 const tt = (key: TKey, lang: Lang): string => translations[key]?.[lang] ?? String(key);
 
+type NotificationCopy = { title: string; body: string };
+type CopyFactory = (lang: Lang, vars?: Record<string, string | number>) => NotificationCopy;
+
+const notificationCopy: Record<NotificationKind, Record<Tone, CopyFactory>> = {
+  no_log_today: {
+    soft: (lang) => ({
+      title: lang === "es" ? "Un recordatorio suave" : "A gentle reminder",
+      body: lang === "es" ? "Si gastaste algo hoy, anótalo antes de que se pierda." : "If you spent today, jot it down before it slips away.",
+    }),
+    neutral: (lang) => ({ title: tt("notif_no_log_title", lang), body: tt("notif_no_log_body", lang) }),
+    brutal: (lang) => ({
+      title: lang === "es" ? "Hoy el registro está vacío" : "Today’s log is empty",
+      body: lang === "es" ? "Tu memoria no es una app financiera. Registra el gasto." : "Your memory is not a finance app. Log the spend.",
+    }),
+  },
+  weekly_spike: {
+    soft: (lang, vars = {}) => ({
+      title: lang === "es" ? "Esta semana subió un poco" : "This week is running higher",
+      body: lang === "es" ? `Llevas ${vars.amount} esta semana, ${vars.pct} arriba. Vale mirarlo con calma.` : `You’re at ${vars.amount} this week, ${vars.pct} above usual. Worth a calm look.`,
+    }),
+    neutral: (lang, vars = {}) => ({ title: tt("notif_weekly_spike_title", lang), body: interpolate(tt("notif_weekly_spike_body", lang), vars) }),
+    brutal: (lang, vars = {}) => ({
+      title: lang === "es" ? "La semana se está poniendo cara" : "This week is getting pricey",
+      body: lang === "es" ? `${vars.amount} esta semana, ${vars.pct} arriba. Tu billetera ya levantó la ceja.` : `${vars.amount} this week, ${vars.pct} above usual. Your wallet has raised an eyebrow.`,
+    }),
+  },
+  category_spike: {
+    soft: (lang, vars = {}) => ({
+      title: lang === "es" ? "Una categoría pide atención" : "One category needs attention",
+      body: lang === "es" ? `${vars.category} subió ${vars.pct}. Una revisión pequeña puede ayudar.` : `${vars.category} is up ${vars.pct}. A small check-in could help.`,
+    }),
+    neutral: (lang, vars = {}) => ({ title: tt("notif_cat_spike_title", lang), body: interpolate(tt("notif_cat_spike_body", lang), vars) }),
+    brutal: (lang, vars = {}) => ({
+      title: lang === "es" ? "Una categoría se emocionó" : "One category got excited",
+      body: lang === "es" ? `${vars.category} subió ${vars.pct}. Bajémosle el volumen.` : `${vars.category} is up ${vars.pct}. Let’s turn the volume down.`,
+    }),
+  },
+  big_outlier: {
+    soft: (lang, vars = {}) => ({
+      title: lang === "es" ? "Gasto grande detectado" : "Large expense spotted",
+      body: lang === "es" ? `${vars.amount} en ${vars.category} pesa bastante. Revísalo sin drama.` : `${vars.amount} on ${vars.category} is a big chunk. Review it without drama.`,
+    }),
+    neutral: (lang, vars = {}) => ({ title: tt("notif_outlier_title", lang), body: interpolate(tt("notif_outlier_body", lang), vars) }),
+    brutal: (lang, vars = {}) => ({
+      title: lang === "es" ? "Ese gasto no pasó desapercibido" : "That spend did not sneak by",
+      body: lang === "es" ? `${vars.amount} en ${vars.category}. No es crimen, pero sí protagonista.` : `${vars.amount} on ${vars.category}. Not a crime, but definitely the main character.`,
+    }),
+  },
+  streak_encourage: {
+    soft: (lang) => ({ title: tt("notif_streak_title", lang), body: lang === "es" ? "Buen comienzo. Otro gasto y empezamos a ver señales." : "Nice start. One more expense and patterns can start forming." }),
+    neutral: (lang) => ({ title: tt("notif_streak_title", lang), body: tt("notif_streak_body", lang) }),
+    brutal: (lang) => ({
+      title: lang === "es" ? "Primer paso, no desfile" : "First step, not a parade",
+      body: lang === "es" ? "Un gasto ayuda. Dos ya empiezan a contar una historia." : "One expense helps. Two starts telling a story.",
+    }),
+  },
+};
+
+const toneCopy = (kind: NotificationKind, tone: Tone, lang: Lang, vars?: Record<string, string | number>) =>
+  notificationCopy[kind][tone](lang, vars);
+
 const fmtMoney = (n: number) => `$${n.toFixed(n < 10 ? 2 : 0)}`;
 
 const fmtPct = (frac: number) => `${Math.round(frac * 100)}%`;
@@ -48,7 +110,7 @@ const sumAmount = (xs: Expense[]) => xs.reduce((s, e) => s + Number(e.amount), 0
  * Compute notifications from the user's expenses + selected language.
  * Pure function — UI layer decides which to show / dismiss.
  */
-export function computeNotifications(expenses: Expense[], lang: Lang): AppNotification[] {
+export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone = "neutral"): AppNotification[] {
   const out: AppNotification[] = [];
   const today = todayKey();
 
@@ -76,11 +138,12 @@ export function computeNotifications(expenses: Expense[], lang: Lang): AppNotifi
     (e) => new Date(e.spent_at).getTime() >= daysAgo(4).getTime(),
   );
   if (!loggedToday && recentlyActive) {
+    const copy = toneCopy("no_log_today", tone, lang);
     out.push({
       id: `no_log_today:${today}`,
       kind: "no_log_today",
-      title: tt("notif_no_log_title", lang),
-      body: tt("notif_no_log_body", lang),
+      title: copy.title,
+      body: copy.body,
       priority: 30,
     });
   }
@@ -93,14 +156,15 @@ export function computeNotifications(expenses: Expense[], lang: Lang): AppNotifi
     const weekDailyAvg = weekTotal / 7;
     if (monthDailyAvg > 0 && weekDailyAvg > monthDailyAvg * 1.3) {
       const overPct = (weekDailyAvg - monthDailyAvg) / monthDailyAvg;
+      const copy = toneCopy("weekly_spike", tone, lang, {
+        pct: fmtPct(overPct),
+        amount: fmtMoney(weekTotal),
+      });
       out.push({
         id: `weekly_spike:${today}`,
         kind: "weekly_spike",
-        title: tt("notif_weekly_spike_title", lang),
-        body: interpolate(tt("notif_weekly_spike_body", lang), {
-          pct: fmtPct(overPct),
-          amount: fmtMoney(weekTotal),
-        }),
+        title: copy.title,
+        body: copy.body,
         priority: 10,
       });
     }
@@ -124,14 +188,15 @@ export function computeNotifications(expenses: Expense[], lang: Lang): AppNotifi
     if (topCat) {
       const cat = getCategory(topCat.id);
       const catLabel = `${cat.emoji} ${tt(cat.labelKey, lang)}`;
+      const copy = toneCopy("category_spike", tone, lang, {
+        category: catLabel,
+        pct: fmtPct(topCat.delta),
+      });
       out.push({
         id: `category_spike:${topCat.id}:${today}`,
         kind: "category_spike",
-        title: tt("notif_cat_spike_title", lang),
-        body: interpolate(tt("notif_cat_spike_body", lang), {
-          category: catLabel,
-          pct: fmtPct(topCat.delta),
-        }),
+        title: copy.title,
+        body: copy.body,
         priority: 20,
       });
     }
@@ -146,14 +211,15 @@ export function computeNotifications(expenses: Expense[], lang: Lang): AppNotifi
     );
     if (biggest && weekTotal > 0 && Number(biggest.amount) >= weekTotal * 0.4 && Number(biggest.amount) >= 20) {
       const cat = getCategory(biggest.category);
+      const copy = toneCopy("big_outlier", tone, lang, {
+        amount: fmtMoney(Number(biggest.amount)),
+        category: `${cat.emoji} ${tt(cat.labelKey, lang)}`,
+      });
       out.push({
         id: `big_outlier:${biggest.id}`,
         kind: "big_outlier",
-        title: tt("notif_outlier_title", lang),
-        body: interpolate(tt("notif_outlier_body", lang), {
-          amount: fmtMoney(Number(biggest.amount)),
-          category: `${cat.emoji} ${tt(cat.labelKey, lang)}`,
-        }),
+        title: copy.title,
+        body: copy.body,
         priority: 40,
       });
     }
@@ -161,11 +227,12 @@ export function computeNotifications(expenses: Expense[], lang: Lang): AppNotifi
 
   // Rule: gentle nudge for brand-new users with only one expense ----------
   if (expenses.length === 1) {
+    const copy = toneCopy("streak_encourage", tone, lang);
     out.push({
       id: `streak_encourage:${today}`,
       kind: "streak_encourage",
-      title: tt("notif_streak_title", lang),
-      body: tt("notif_streak_body", lang),
+      title: copy.title,
+      body: copy.body,
       priority: 50,
     });
   }

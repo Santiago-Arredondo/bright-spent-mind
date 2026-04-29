@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readTone, TONE_KEY, type Tone } from "@/lib/tone";
+import { readTone, TONE_CHANGE_EVENT, TONE_KEY, type Tone } from "@/lib/tone";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getEmptyMessage, type EmptyKey } from "@/lib/emptyMessages";
 
@@ -16,11 +16,14 @@ export const useEmptyMessage = (key: EmptyKey): string => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === TONE_KEY) setTone(readTone());
     };
+    const onToneChange = () => setTone(readTone());
     const onFocus = () => setTone(readTone());
     window.addEventListener("storage", onStorage);
+    window.addEventListener(TONE_CHANGE_EVENT, onToneChange);
     window.addEventListener("focus", onFocus);
     return () => {
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener(TONE_CHANGE_EVENT, onToneChange);
       window.removeEventListener("focus", onFocus);
     };
   }, []);

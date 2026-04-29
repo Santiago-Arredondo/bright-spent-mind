@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { computeNotifications, type AppNotification } from "@/lib/notifications";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { readTone, TONE_CHANGE_EVENT, TONE_KEY, type Tone } from "@/lib/tone";
 import type { Expense } from "@/components/ExpenseList";
 
 const DISMISS_KEY = "coin.notifs.dismissed";
@@ -28,13 +29,29 @@ const saveDismissed = (ids: string[]) => {
 
 export const useNotifications = (expenses: Expense[]) => {
   const { lang } = useLanguage();
+  const [tone, setTone] = useState<Tone>(readTone);
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set(loadDismissed()));
 
-  // Recompute when expenses, language, or dismissed set changes
+  // Recompute when expenses, language, tone, or dismissed set changes
   const notifications = useMemo<AppNotification[]>(() => {
-    const all = computeNotifications(expenses, lang);
+    const all = computeNotifications(expenses, lang, tone);
     return all.filter((n) => !dismissed.has(n.id));
-  }, [expenses, lang, dismissed]);
+  }, [expenses, lang, tone, dismissed]);
+
+  useEffect(() => {
+    const refreshTone = () => setTone(readTone());
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === TONE_KEY) refreshTone();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(TONE_CHANGE_EVENT, refreshTone);
+    window.addEventListener("focus", refreshTone);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(TONE_CHANGE_EVENT, refreshTone);
+      window.removeEventListener("focus", refreshTone);
+    };
+  }, []);
 
   const dismiss = useCallback((id: string) => {
     setDismissed((prev) => {
@@ -49,11 +66,11 @@ export const useNotifications = (expenses: Expense[]) => {
   const dismissAll = useCallback(() => {
     setDismissed((prev) => {
       const next = new Set(prev);
-      for (const n of computeNotifications(expenses, lang)) next.add(n.id);
+      for (const n of computeNotifications(expenses, lang, tone)) next.add(n.id);
       saveDismissed(Array.from(next));
       return next;
     });
-  }, [expenses, lang]);
+  }, [expenses, lang, tone]);
 
   // Garbage-collect old dismissed ids once a day so the set doesn't grow forever
   useEffect(() => {
