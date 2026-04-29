@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Lang, t as translate, TKey } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./AuthContext";
 
 interface Ctx {
   lang: Lang;
@@ -21,8 +20,8 @@ const getInitial = (): Lang => {
 };
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
   const [lang, setLangState] = useState<Lang>(getInitial);
+  const [userId, setUserId] = useState<string | null>(null);
   const hydratedFor = useRef<string | null>(null);
 
   // Persist locally + reflect on <html lang>
@@ -31,37 +30,48 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     document.documentElement.lang = lang;
   }, [lang]);
 
-  // Load preferred_language from profile when user signs in (once per user)
+  // Track auth user directly (decoupled from AuthContext to avoid provider-order issues)
   useEffect(() => {
-    if (!user) {
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUserId(s?.user?.id ?? null);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user?.id ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Hydrate language from profile when user signs in (once per user)
+  useEffect(() => {
+    if (!userId) {
       hydratedFor.current = null;
       return;
     }
-    if (hydratedFor.current === user.id) return;
-    hydratedFor.current = user.id;
+    if (hydratedFor.current === userId) return;
+    hydratedFor.current = userId;
     (async () => {
       const { data } = await supabase
         .from("profiles")
         .select("preferred_language")
-        .eq("id", user.id)
+        .eq("id", userId)
         .maybeSingle();
       const pl = data?.preferred_language;
       if (pl === "es" || pl === "en") setLangState(pl);
     })();
-  }, [user]);
+  }, [userId]);
 
   const setLang = useCallback(
     (l: Lang) => {
       setLangState(l);
-      if (user) {
+      if (userId) {
         supabase
           .from("profiles")
           .update({ preferred_language: l })
-          .eq("id", user.id)
+          .eq("id", userId)
           .then(() => {});
       }
     },
-    [user]
+    [userId]
   );
 
   const t = useCallback((key: TKey) => translate(key, lang), [lang]);
