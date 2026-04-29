@@ -138,11 +138,12 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
     (e) => new Date(e.spent_at).getTime() >= daysAgo(4).getTime(),
   );
   if (!loggedToday && recentlyActive) {
+    const copy = toneCopy("no_log_today", tone, lang);
     out.push({
       id: `no_log_today:${today}`,
       kind: "no_log_today",
-      title: tt("notif_no_log_title", lang),
-      body: tt("notif_no_log_body", lang),
+      title: copy.title,
+      body: copy.body,
       priority: 30,
     });
   }
@@ -155,14 +156,15 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
     const weekDailyAvg = weekTotal / 7;
     if (monthDailyAvg > 0 && weekDailyAvg > monthDailyAvg * 1.3) {
       const overPct = (weekDailyAvg - monthDailyAvg) / monthDailyAvg;
+      const copy = toneCopy("weekly_spike", tone, lang, {
+        pct: fmtPct(overPct),
+        amount: fmtMoney(weekTotal),
+      });
       out.push({
         id: `weekly_spike:${today}`,
         kind: "weekly_spike",
-        title: tt("notif_weekly_spike_title", lang),
-        body: interpolate(tt("notif_weekly_spike_body", lang), {
-          pct: fmtPct(overPct),
-          amount: fmtMoney(weekTotal),
-        }),
+        title: copy.title,
+        body: copy.body,
         priority: 10,
       });
     }
@@ -186,14 +188,15 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
     if (topCat) {
       const cat = getCategory(topCat.id);
       const catLabel = `${cat.emoji} ${tt(cat.labelKey, lang)}`;
+      const copy = toneCopy("category_spike", tone, lang, {
+        category: catLabel,
+        pct: fmtPct(topCat.delta),
+      });
       out.push({
         id: `category_spike:${topCat.id}:${today}`,
         kind: "category_spike",
-        title: tt("notif_cat_spike_title", lang),
-        body: interpolate(tt("notif_cat_spike_body", lang), {
-          category: catLabel,
-          pct: fmtPct(topCat.delta),
-        }),
+        title: copy.title,
+        body: copy.body,
         priority: 20,
       });
     }
@@ -208,14 +211,15 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
     );
     if (biggest && weekTotal > 0 && Number(biggest.amount) >= weekTotal * 0.4 && Number(biggest.amount) >= 20) {
       const cat = getCategory(biggest.category);
+      const copy = toneCopy("big_outlier", tone, lang, {
+        amount: fmtMoney(Number(biggest.amount)),
+        category: `${cat.emoji} ${tt(cat.labelKey, lang)}`,
+      });
       out.push({
         id: `big_outlier:${biggest.id}`,
         kind: "big_outlier",
-        title: tt("notif_outlier_title", lang),
-        body: interpolate(tt("notif_outlier_body", lang), {
-          amount: fmtMoney(Number(biggest.amount)),
-          category: `${cat.emoji} ${tt(cat.labelKey, lang)}`,
-        }),
+        title: copy.title,
+        body: copy.body,
         priority: 40,
       });
     }
@@ -223,11 +227,12 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
 
   // Rule: gentle nudge for brand-new users with only one expense ----------
   if (expenses.length === 1) {
+    const copy = toneCopy("streak_encourage", tone, lang);
     out.push({
       id: `streak_encourage:${today}`,
       kind: "streak_encourage",
-      title: tt("notif_streak_title", lang),
-      body: tt("notif_streak_body", lang),
+      title: copy.title,
+      body: copy.body,
       priority: 50,
     });
   }
