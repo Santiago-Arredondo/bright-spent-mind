@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import type { Expense } from "./ExpenseList";
-import { readTone, TONE_KEY, type Tone } from "@/lib/tone";
+import { readTone, writeTone, type Tone } from "@/lib/tone";
 
 export type { Tone };
 
@@ -101,11 +101,7 @@ export const AIInsight = ({ expenses }: Props) => {
 
   const setTone = (next: Tone) => {
     setToneState(next);
-    try {
-      localStorage.setItem(TONE_KEY, next);
-    } catch {
-      /* ignore */
-    }
+    writeTone(next);
   };
 
   const fetchInsight = async (opts: { force?: boolean } = {}) => {
