@@ -226,8 +226,8 @@ export const AIInsight = ({ expenses }: Props) => {
                   aria-hidden
                   className="absolute inset-0 rounded-2xl bg-primary-glow/50 blur-md animate-pulse-soft"
                 />
-                <div className="relative h-11 w-11 rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm flex items-center justify-center">
-                  <Brain className="h-5 w-5" />
+                <div className="relative h-11 w-11 rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm flex items-center justify-center transition-smooth hover:scale-105">
+                  <Brain className={`h-5 w-5 ${loading ? "animate-think" : ""}`} />
                   <Sparkles
                     className="absolute -top-1 -right-1 h-3 w-3 text-warning animate-pulse-soft"
                     aria-hidden
@@ -302,14 +302,24 @@ export const AIInsight = ({ expenses }: Props) => {
               aria-hidden
               className="absolute -left-2 top-1 h-[calc(100%-0.5rem)] w-[3px] rounded-full bg-white/40"
             />
-            <p
-              key={message}
-              className={`pl-4 font-display text-2xl md:text-3xl leading-[1.25] tracking-tight min-h-[4.5rem] animate-fade-in-up ${
-                showCaret ? "caret-blink" : ""
-              }`}
-            >
-              {message}
-            </p>
+            {loading ? (
+              <div className="pl-4 min-h-[4.5rem] space-y-3 animate-fade-in-up" aria-live="polite">
+                <p className="font-display text-2xl md:text-3xl leading-[1.25] tracking-tight">{message}</p>
+                <div className="space-y-2 opacity-75">
+                  <span className="block h-2.5 w-11/12 rounded-full insight-skeleton" />
+                  <span className="block h-2.5 w-7/12 rounded-full insight-skeleton" />
+                </div>
+              </div>
+            ) : (
+              <p
+                key={message}
+                className={`pl-4 font-display text-2xl md:text-3xl leading-[1.25] tracking-tight min-h-[4.5rem] animate-fade-in-up ${
+                  showCaret ? "caret-blink" : ""
+                }`}
+              >
+                {message}
+              </p>
+            )}
           </div>
         </div>
       </div>
