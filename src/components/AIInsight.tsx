@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Expense } from "./ExpenseList";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export const AIInsight = ({ expenses }: Props) => {
+  const { t, lang } = useLanguage();
   const [insight, setInsight] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -18,7 +20,7 @@ export const AIInsight = ({ expenses }: Props) => {
     setError("");
     try {
       const { data, error } = await supabase.functions.invoke("insights", {
-        body: { expenses: expenses.slice(0, 50) },
+        body: { expenses: expenses.slice(0, 50), lang },
       });
       if (error) throw error;
       if (data?.error) {
@@ -27,17 +29,18 @@ export const AIInsight = ({ expenses }: Props) => {
         setInsight(data?.insight ?? "");
       }
     } catch (e) {
-      setError("Couldn't fetch insight right now.");
+      setError(t("ai_error"));
     } finally {
       setLoading(false);
     }
   };
 
-  // auto-fetch when expense count changes meaningfully
+  // refetch when language changes (and on initial load with expenses)
   useEffect(() => {
-    if (expenses.length > 0 && !insight) fetchInsight();
+    if (expenses.length > 0) fetchInsight();
+    else setInsight("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expenses.length > 0]);
+  }, [lang, expenses.length > 0]);
 
   return (
     <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-primary text-primary-foreground shadow-glow">
@@ -46,7 +49,7 @@ export const AIInsight = ({ expenses }: Props) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            <p className="text-xs uppercase tracking-wider opacity-80">AI insight</p>
+            <p className="text-xs uppercase tracking-wider opacity-80">{t("ai_insight")}</p>
           </div>
           <Button
             variant="ghost"
@@ -60,13 +63,11 @@ export const AIInsight = ({ expenses }: Props) => {
         </div>
         <p className="font-display text-lg leading-snug min-h-[3.5rem]">
           {loading
-            ? "Thinking..."
+            ? t("ai_thinking")
             : error
             ? error
             : insight ||
-              (expenses.length === 0
-                ? "Log your first expense and I'll start spotting patterns."
-                : "Tap refresh for an insight.")}
+              (expenses.length === 0 ? t("ai_empty") : t("ai_refresh_hint"))}
         </p>
       </div>
     </div>

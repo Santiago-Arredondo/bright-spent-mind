@@ -2,23 +2,27 @@ import { NavLink, useLocation } from "react-router-dom";
 import { LayoutDashboard, Sparkles, History as HistoryIcon, Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageToggle } from "./LanguageToggle";
 
 interface Props {
   children: React.ReactNode;
   onAddClick: () => void;
 }
 
-const navItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/insights", label: "Insights", icon: Sparkles },
-  { to: "/history", label: "History", icon: HistoryIcon },
-];
-
 export const AppShell = ({ children, onAddClick }: Props) => {
   const location = useLocation();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { to: "/", label: t("nav_dashboard"), icon: LayoutDashboard },
+    { to: "/insights", label: t("nav_insights"), icon: Sparkles },
+    { to: "/history", label: t("nav_history"), icon: HistoryIcon },
+  ];
+
   return (
     <div className="min-h-screen bg-warm pb-24 md:pb-0">
-      <header className="max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
+      <header className="max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
             <Wallet className="h-4 w-4 text-primary-foreground" />
@@ -45,13 +49,16 @@ export const AppShell = ({ children, onAddClick }: Props) => {
           })}
         </nav>
 
-        <Button
-          onClick={onAddClick}
-          className="hidden md:inline-flex rounded-full bg-gradient-primary hover:opacity-90 shadow-glow"
-        >
-          <Plus className="h-4 w-4" />
-          Add expense
-        </Button>
+        <div className="flex items-center gap-2">
+          <LanguageToggle />
+          <Button
+            onClick={onAddClick}
+            className="hidden md:inline-flex rounded-full bg-gradient-primary hover:opacity-90 shadow-glow"
+          >
+            <Plus className="h-4 w-4" />
+            {t("add_expense")}
+          </Button>
+        </div>
       </header>
 
       <main>{children}</main>
@@ -78,7 +85,7 @@ export const AppShell = ({ children, onAddClick }: Props) => {
           <button
             onClick={onAddClick}
             className="-mt-8 h-14 w-14 rounded-full bg-gradient-primary text-primary-foreground shadow-glow flex items-center justify-center"
-            aria-label="Add expense"
+            aria-label={t("add_expense")}
           >
             <Plus className="h-6 w-6" />
           </button>
