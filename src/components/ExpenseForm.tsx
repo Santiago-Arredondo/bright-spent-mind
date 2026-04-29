@@ -1,16 +1,18 @@
-import { useState } from "react";
-import { Plus, CalendarIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, CalendarIcon, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES, getCategory } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCategoryOverrides } from "@/hooks/useCategoryOverrides";
+import { suggestCategory } from "@/lib/categorizer";
 
 const schema = z.object({
   amount: z.number().positive().max(1000000),
@@ -26,11 +28,30 @@ interface Props {
 export const ExpenseForm = ({ onAdd }: Props) => {
   const { t, lang } = useLanguage();
   const dateLocale = lang === "es" ? esLocale : undefined;
+  const { overrides, remember } = useCategoryOverrides();
+
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("food");
   const [note, setNote] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [busy, setBusy] = useState(false);
+  // Tracks whether the user has manually changed the category for the current note.
+  const userTouchedCategory = useRef(false);
+  const [suggestion, setSuggestion] = useState<{ category: string; source: string } | null>(null);
+
+  // Auto-suggest category from note while user types (unless they overrode it)
+  useEffect(() => {
+    const s = suggestCategory(note, overrides);
+    setSuggestion(s.source === "default" ? null : { category: s.category, source: s.source });
+    if (!userTouchedCategory.current && s.source !== "default") {
+      setCategory(s.category);
+    }
+  }, [note, overrides]);
+
+  const pickCategory = (id: string) => {
+    setCategory(id);
+    userTouchedCategory.current = true;
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +73,25 @@ export const ExpenseForm = ({ onAdd }: Props) => {
         note: parsed.data.note,
         spent_at: parsed.data.spent_at.toISOString(),
       });
+
+      // Learn from the user's choice if they had a note.
+      // We only learn when the chosen category differs from what the keyword rules
+      // would have suggested (i.e. it's a real correction or a user-confirmed override).
+      if (parsed.data.note) {
+        const builtIn = suggestCategory(parsed.data.note, {});
+        const shouldLearn =
+          userTouchedCategory.current ||
+          builtIn.category !== parsed.data.category ||
+          builtIn.source === "default";
+        if (shouldLearn) {
+          remember(parsed.data.note, parsed.data.category);
+        }
+      }
+
       setAmount("");
       setNote("");
       setDate(new Date());
+      userTouchedCategory.current = false;
       toast.success(t("logged"));
     } catch {
       toast.error(t("save_error"));
@@ -82,13 +119,21 @@ export const ExpenseForm = ({ onAdd }: Props) => {
       </div>
 
       <div className="mb-5">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("category")}</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("category")}</p>
+          {suggestion && !userTouchedCategory.current && (
+            <span className="inline-flex items-center gap-1 text-xs text-primary">
+              <Sparkles className="h-3 w-3" />
+              {t("auto_detected")}: {getCategory(suggestion.category).emoji} {t(getCategory(suggestion.category).labelKey)}
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <button
               key={c.id}
               type="button"
-              onClick={() => setCategory(c.id)}
+              onClick={() => pickCategory(c.id)}
               className={cn(
                 "px-3 py-2 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border",
                 category === c.id
