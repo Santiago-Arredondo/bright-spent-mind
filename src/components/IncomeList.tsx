@@ -1,29 +1,20 @@
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { getCategory } from "@/lib/categories";
+import { getIncomeSource } from "@/lib/incomeSources";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { formatCOP } from "@/lib/money";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
-
-export interface Expense {
-  id: string;
-  amount: number;
-  category: string;
-  note: string | null;
-  spent_at: string;
-}
+import type { Income } from "@/hooks/useIncome";
 
 interface Props {
-  expenses: Expense[];
+  income: Income[];
   onDelete: (id: string) => void;
-  onEdit?: (expense: Expense) => void;
+  onEdit?: (income: Income) => void;
 }
 
-export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
+export const IncomeList = ({ income, onDelete, onEdit }: Props) => {
   const { t, lang } = useLanguage();
-  const emptyMsg = useEmptyMessage("list");
   const locale = lang === "es" ? "es-ES" : "en-US";
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
@@ -36,18 +27,18 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
     return d.toLocaleDateString(locale, { month: "short", day: "numeric" });
   };
 
-  if (expenses.length === 0) {
+  if (income.length === 0) {
     return (
       <div className="text-center py-16 px-6 animate-fade-in-up">
-        <div className="text-5xl mb-3">🪴</div>
+        <div className="text-5xl mb-3">💰</div>
         <p className="font-display text-xl mb-1">{t("empty_title")}</p>
-        <p className="text-sm text-muted-foreground max-w-xs mx-auto">{emptyMsg}</p>
+        <p className="text-sm text-muted-foreground max-w-xs mx-auto">{t("income_empty")}</p>
       </div>
     );
   }
 
-  const groups = expenses.reduce<Record<string, Expense[]>>((acc, e) => {
-    const k = formatDate(e.spent_at);
+  const groups = income.reduce<Record<string, Income[]>>((acc, e) => {
+    const k = formatDate(e.received_at);
     (acc[k] ||= []).push(e);
     return acc;
   }, {});
@@ -60,8 +51,8 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 px-1">{label}</p>
             <div className="bg-card rounded-2xl shadow-card border border-border overflow-hidden">
               {items.map((e, i) => {
-                const cat = getCategory(e.category);
-                const catLabel = t(cat.labelKey);
+                const src = getIncomeSource(e.source);
+                const srcLabel = t(src.labelKey);
                 return (
                   <div
                     key={e.id}
@@ -70,18 +61,15 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
                     }`}
                     style={{ animationDelay: `${Math.min(i * 35, 140)}ms` }}
                   >
-                    <div
-                      className="h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0 transition-smooth group-hover:scale-110"
-                      style={{ backgroundColor: `hsl(${cat.color} / 0.15)` }}
-                    >
-                      {cat.emoji}
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0 bg-success-soft text-success">
+                      {src.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate text-sm sm:text-base">{e.note || catLabel}</p>
-                      <p className="text-xs text-muted-foreground">{catLabel}</p>
+                      <p className="font-medium truncate text-sm sm:text-base">{e.description || srcLabel}</p>
+                      <p className="text-xs text-muted-foreground">{srcLabel}</p>
                     </div>
-                    <p className="font-display text-base sm:text-lg tabular-nums text-alert">
-                      −{formatCOP(e.amount, { decimals: 0 })}
+                    <p className="font-display text-base sm:text-lg tabular-nums text-success">
+                      +{formatCOP(e.amount, { decimals: 0 })}
                     </p>
                     <div className="flex items-center gap-0.5 shrink-0">
                       {onEdit && (
@@ -112,7 +100,6 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
           </div>
         ))}
       </div>
-
       <ConfirmDeleteDialog
         open={!!pendingDelete}
         onOpenChange={(o) => !o && setPendingDelete(null)}

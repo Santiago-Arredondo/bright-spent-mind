@@ -15,15 +15,20 @@ import { CategoryChart } from "@/components/CategoryChart";
 import { AIInsight } from "@/components/AIInsight";
 import { SpendingProjection } from "@/components/SpendingProjection";
 import { BiggestLeak } from "@/components/BiggestLeak";
+import { BalanceCard } from "@/components/BalanceCard";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCategory } from "@/lib/categories";
 import { formatCOP } from "@/lib/money";
+import type { Income } from "@/hooks/useIncome";
 
 interface Props {
   expenses: Expense[];
+  income: Income[];
   loading: boolean;
   onDelete: (id: string) => void;
+  onEdit?: (expense: Expense) => void;
+  onAddIncome?: () => void;
 }
 
 type MetricTone = "success" | "warning" | "alert";
@@ -105,7 +110,7 @@ const MetricCard = ({
   );
 };
 
-const Dashboard = ({ expenses, loading, onDelete }: Props) => {
+const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
   const { t } = useLanguage();
 
   const {
@@ -165,21 +170,26 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
   const categoryTone: MetricTone = topCategoryShare >= 0.45 ? "alert" : topCategoryShare >= 0.25 ? "warning" : "success";
 
   return (
-    <div className="max-w-6xl mx-auto px-6 pb-16">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
       {/* 1. HERO — total monthly spending. Largest, highest contrast. */}
-      <section className="pt-2 pb-10 md:pb-12">
+      <section className="pt-2 pb-6 sm:pb-10 md:pb-12">
         <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
           {t("this_month")}
         </p>
-        <h1 className="font-display tabular-nums tracking-tighter text-foreground text-7xl md:text-8xl lg:text-9xl leading-[0.95] mb-4">
+        <h1 className="font-display tabular-nums tracking-tighter text-foreground text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] mb-4 break-all">
           {formatCOP(monthTotal)}
         </h1>
         <p className="text-sm text-muted-foreground max-w-md flex items-center gap-2">
-          <span className="inline-block h-1 w-6 rounded-full bg-gradient-primary" />
+          <span className="inline-block h-1 w-6 rounded-full bg-gradient-primary shrink-0" />
           {count > 0
             ? `${count} ${t("entries_this_month").toLowerCase()}`
             : t("app_tagline")}
         </p>
+      </section>
+
+      {/* BALANCE — income vs expenses */}
+      <section className="mb-6">
+        <BalanceCard expenses={expenses} income={income} />
       </section>
 
       {/* 2. SMART INSIGHT — second most prominent. */}
@@ -246,7 +256,7 @@ const Dashboard = ({ expenses, loading, onDelete }: Props) => {
               </Link>
             </Button>
           </div>
-          {!loading && <ExpenseList expenses={expenses.slice(0, 8)} onDelete={onDelete} />}
+          {!loading && <ExpenseList expenses={expenses.slice(0, 8)} onDelete={onDelete} onEdit={onEdit} />}
         </section>
 
         <aside className="md:col-span-2 space-y-6">
