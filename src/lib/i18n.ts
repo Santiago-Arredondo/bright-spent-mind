@@ -166,6 +166,54 @@ export const translations = {
   leak_body: { es: "Tu mayor fuga de dinero es: {category}", en: "Your biggest money leak is: {category}" },
   leak_detail: { es: "{amount} este mes · {pct} del total", en: "{amount} this month · {pct} of total" },
   leak_empty: { es: "Registra gastos para descubrir tu mayor fuga.", en: "Log expenses to spot your biggest leak." },
+
+  // Income
+  nav_income: { es: "Ingresos", en: "Income" },
+  income: { es: "Ingreso", en: "Income" },
+  incomes: { es: "Ingresos", en: "Income" },
+  add_income: { es: "Agregar ingreso", en: "Add income" },
+  edit_income: { es: "Editar ingreso", en: "Edit income" },
+  income_amount: { es: "Monto", en: "Amount" },
+  income_source: { es: "Fuente", en: "Source" },
+  income_description: { es: "Descripción", en: "Description" },
+  income_date: { es: "Fecha", en: "Date" },
+  income_logged: { es: "Ingreso registrado ✨", en: "Income logged ✨" },
+  income_updated: { es: "Ingreso actualizado", en: "Income updated" },
+  income_removed: { es: "Ingreso eliminado", en: "Income removed" },
+  income_empty: { es: "Aún no registras ingresos. Agrega el primero.", en: "No income logged yet. Add your first one." },
+  income_history: { es: "Historial de ingresos", en: "Income history" },
+  src_salary: { es: "Salario", en: "Salary" },
+  src_freelance: { es: "Freelance", en: "Freelance" },
+  src_business: { es: "Negocio", en: "Business" },
+  src_investment: { es: "Inversión", en: "Investment" },
+  src_gift: { es: "Regalo", en: "Gift" },
+  src_other: { es: "Otro", en: "Other" },
+
+  // Balance
+  balance_title: { es: "Balance del mes", en: "Monthly balance" },
+  balance_income: { es: "Ingresos", en: "Income" },
+  balance_expenses: { es: "Gastos", en: "Expenses" },
+  balance_net: { es: "Balance neto", en: "Net balance" },
+  balance_saving: { es: "Este mes estás ahorrando", en: "You are saving this month" },
+  balance_overspending: { es: "Este mes estás gastando más de lo que ganas", en: "You are spending more than you earn" },
+  balance_neutral: { es: "Aún sin movimiento este mes", en: "No activity yet this month" },
+
+  // CRUD / actions
+  edit: { es: "Editar", en: "Edit" },
+  delete: { es: "Eliminar", en: "Delete" },
+  edit_expense: { es: "Editar gasto", en: "Edit expense" },
+  expense_updated: { es: "Gasto actualizado", en: "Expense updated" },
+  confirm_delete_title: { es: "¿Eliminar este registro?", en: "Delete this entry?" },
+  confirm_delete_desc: { es: "Esta acción no se puede deshacer.", en: "This action cannot be undone." },
+
+  // Unified history
+  filter_type: { es: "Tipo", en: "Type" },
+  type_all: { es: "Todo", en: "All" },
+  type_expenses: { es: "Gastos", en: "Expenses" },
+  type_income: { es: "Ingresos", en: "Income" },
+  unified_title: { es: "Movimientos", en: "Transactions" },
+  description_label: { es: "Descripción", en: "Description" },
+  amount_label: { es: "Monto", en: "Amount" },
 } as const;
 
 export type TKey = keyof typeof translations;
