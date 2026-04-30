@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
@@ -41,16 +41,14 @@ export const EditExpenseDialog = ({ expense, onOpenChange, onUpdate }: Props) =>
   const [date, setDate] = useState<Date>(new Date());
   const [busy, setBusy] = useState(false);
 
-  // Sync when opened with new expense
-  const lastIdRef = useState<string | null>(null);
-  if (expense && lastIdRef[0] !== expense.id) {
-    lastIdRef[1](expense.id);
-    setAmount(String(expense.amount));
-    setCategory(expense.category);
-    setNote(expense.note ?? "");
-    setDate(new Date(expense.spent_at));
-  }
-  if (!expense && lastIdRef[0] !== null) lastIdRef[1](null);
+  useEffect(() => {
+    if (expense) {
+      setAmount(String(expense.amount));
+      setCategory(expense.category);
+      setNote(expense.note ?? "");
+      setDate(new Date(expense.spent_at));
+    }
+  }, [expense?.id]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
