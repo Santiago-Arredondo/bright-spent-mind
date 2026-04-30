@@ -15,15 +15,20 @@ import { CategoryChart } from "@/components/CategoryChart";
 import { AIInsight } from "@/components/AIInsight";
 import { SpendingProjection } from "@/components/SpendingProjection";
 import { BiggestLeak } from "@/components/BiggestLeak";
+import { BalanceCard } from "@/components/BalanceCard";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCategory } from "@/lib/categories";
 import { formatCOP } from "@/lib/money";
+import type { Income } from "@/hooks/useIncome";
 
 interface Props {
   expenses: Expense[];
+  income: Income[];
   loading: boolean;
   onDelete: (id: string) => void;
+  onEdit?: (expense: Expense) => void;
+  onAddIncome?: () => void;
 }
 
 type MetricTone = "success" | "warning" | "alert";
