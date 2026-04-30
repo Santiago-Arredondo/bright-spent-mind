@@ -52,6 +52,9 @@ export const BalanceCard = ({ expenses, income, now }: Props) => {
           </span>
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("balance_title")}</p>
         </div>
+        <p className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground/80 tabular-nums">
+          {formatMonthYear(reference, lang)}
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
