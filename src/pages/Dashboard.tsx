@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCategory } from "@/lib/categories";
 import { formatCOP } from "@/lib/money";
+import { useNow } from "@/hooks/useNow";
+import { formatLongDate, formatMonthYear, isSameMonth } from "@/lib/dateFormat";
 import type { Income } from "@/hooks/useIncome";
 
 interface Props {
@@ -111,7 +113,8 @@ const MetricCard = ({
 };
 
 const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const now = useNow();
 
   const {
     monthExpenses,
@@ -123,7 +126,6 @@ const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
     previousDailyAvg,
     previousCount,
   } = useMemo(() => {
-    const now = new Date();
     const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const monthExpenses: Expense[] = [];
     const byCat: Record<string, number> = {};
@@ -156,7 +158,7 @@ const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
       previousDailyAvg,
       previousCount,
     };
-  }, [expenses]);
+  }, [expenses, now]);
 
   const topCat = topCategoryId ? getCategory(topCategoryId) : null;
   const dailyDelta = previousDailyAvg > 0 ? (dailyAvg - previousDailyAvg) / previousDailyAvg : 0;
@@ -173,12 +175,15 @@ const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
       {/* 1. HERO — total monthly spending. Largest, highest contrast. */}
       <section className="pt-2 pb-6 sm:pb-10 md:pb-12">
-        <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
-          {t("this_month")}
+        <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-2">
+          {formatMonthYear(now, lang)}
         </p>
-        <h1 className="font-display tabular-nums tracking-tighter text-foreground text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] mb-4 break-all">
+        <h1 className="font-display tabular-nums tracking-tighter text-foreground text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] mb-3 break-all">
           {formatCOP(monthTotal)}
         </h1>
+        <p className="text-xs text-muted-foreground/80 mb-3">
+          {t("today_is")} {formatLongDate(now, lang)}
+        </p>
         <p className="text-sm text-muted-foreground max-w-md flex items-center gap-2">
           <span className="inline-block h-1 w-6 rounded-full bg-gradient-primary shrink-0" />
           {count > 0
@@ -189,7 +194,7 @@ const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
 
       {/* BALANCE — income vs expenses */}
       <section className="mb-6">
-        <BalanceCard expenses={expenses} income={income} />
+        <BalanceCard expenses={expenses} income={income} now={now} />
       </section>
 
       {/* 2. SMART INSIGHT — second most prominent. */}

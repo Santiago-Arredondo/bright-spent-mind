@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCOP } from "@/lib/money";
+import { formatMonthYear, isSameMonth } from "@/lib/dateFormat";
 import type { Expense } from "@/components/ExpenseList";
 import type { Income } from "@/hooks/useIncome";
 import { cn } from "@/lib/utils";
@@ -9,22 +10,18 @@ import { cn } from "@/lib/utils";
 interface Props {
   expenses: Expense[];
   income: Income[];
+  now?: Date;
 }
 
-const isThisMonth = (iso: string) => {
-  const d = new Date(iso);
-  const now = new Date();
-  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-};
-
-export const BalanceCard = ({ expenses, income }: Props) => {
-  const { t } = useLanguage();
+export const BalanceCard = ({ expenses, income, now }: Props) => {
+  const { t, lang } = useLanguage();
+  const reference = now ?? new Date();
 
   const { totalIncome, totalExpenses, balance } = useMemo(() => {
-    const totalIncome = income.filter((i) => isThisMonth(i.received_at)).reduce((s, i) => s + Number(i.amount), 0);
-    const totalExpenses = expenses.filter((e) => isThisMonth(e.spent_at)).reduce((s, e) => s + Number(e.amount), 0);
+    const totalIncome = income.filter((i) => isSameMonth(i.received_at, reference)).reduce((s, i) => s + Number(i.amount), 0);
+    const totalExpenses = expenses.filter((e) => isSameMonth(e.spent_at, reference)).reduce((s, e) => s + Number(e.amount), 0);
     return { totalIncome, totalExpenses, balance: totalIncome - totalExpenses };
-  }, [expenses, income]);
+  }, [expenses, income, reference]);
 
   const noActivity = totalIncome === 0 && totalExpenses === 0;
   const positive = balance >= 0;
@@ -55,6 +52,9 @@ export const BalanceCard = ({ expenses, income }: Props) => {
           </span>
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("balance_title")}</p>
         </div>
+        <p className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground/80 tabular-nums">
+          {formatMonthYear(reference, lang)}
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4">

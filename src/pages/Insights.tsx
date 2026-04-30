@@ -6,6 +6,8 @@ import { getCategory } from "@/lib/categories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { formatCOP } from "@/lib/money";
+import { useNow } from "@/hooks/useNow";
+import { formatLongDate, formatMonthYear } from "@/lib/dateFormat";
 
 interface Props {
   expenses: Expense[];
@@ -14,6 +16,7 @@ interface Props {
 const Insights = ({ expenses }: Props) => {
   const { t, lang } = useLanguage();
   const trendEmpty = useEmptyMessage("trend");
+  const now = useNow();
   const locale = lang === "es" ? "es-ES" : "en-US";
 
   const { byMonth, topCat, biggest, dailyAvg, daysActive } = useMemo(() => {
@@ -46,9 +49,14 @@ const Insights = ({ expenses }: Props) => {
   return (
     <div className="max-w-6xl mx-auto px-6 pb-16">
       <section className="mb-8">
-        <p className="text-sm text-muted-foreground mb-1">{t("insights")}</p>
+        <p className="text-sm text-muted-foreground mb-1">
+          {t("insights")} · <span className="tabular-nums">{formatMonthYear(now, lang)}</span>
+        </p>
         <h1 className="font-display text-4xl md:text-5xl mb-2">{t("insights_title")}</h1>
         <p className="text-muted-foreground max-w-xl">{t("insights_subtitle")}</p>
+        <p className="text-xs text-muted-foreground/80 mt-2">
+          {t("today_is")} {formatLongDate(now, lang)}
+        </p>
       </section>
 
       <div className="grid gap-6 md:grid-cols-2 mb-6">
