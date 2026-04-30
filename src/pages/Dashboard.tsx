@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCategory } from "@/lib/categories";
 import { formatCOP } from "@/lib/money";
+import { useNow } from "@/hooks/useNow";
+import { formatLongDate, formatMonthYear, isSameMonth } from "@/lib/dateFormat";
 import type { Income } from "@/hooks/useIncome";
 
 interface Props {
@@ -111,7 +113,8 @@ const MetricCard = ({
 };
 
 const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const now = useNow();
 
   const {
     monthExpenses,
