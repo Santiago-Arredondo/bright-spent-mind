@@ -38,7 +38,7 @@ export const translations = {
   all: { es: "Todas", en: "All" },
 
   // Form
-  quick_add: { es: "Agregar rápido", en: "Quick add" },
+  quick_add: { es: "Agregar gasto", en: "Add expense" },
   category: { es: "Categoría", en: "Category" },
   optional_note: { es: "Nota opcional (ej. café con mamá)", en: "Optional note (e.g. coffee with mom)" },
   saving: { es: "Guardando...", en: "Saving..." },
