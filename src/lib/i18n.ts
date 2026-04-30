@@ -215,6 +215,25 @@ export const translations = {
   unified_title: { es: "Movimientos", en: "Transactions" },
   description_label: { es: "Descripción", en: "Description" },
   amount_label: { es: "Monto", en: "Amount" },
+
+  // Monthly view
+  nav_monthly: { es: "Mensual", en: "Monthly" },
+  monthly_title: { es: "Resumen mensual", en: "Monthly overview" },
+  monthly_subtitle: { es: "Tu dinero, mes a mes — ingresos, gastos y balance neto.", en: "Your money, month by month — income, expenses, and net balance." },
+  monthly_empty: { es: "Aún no hay movimientos. Agrega un gasto o ingreso para empezar.", en: "No activity yet. Add an expense or income to get started." },
+  monthly_no_transactions: { es: "Sin movimientos en este mes.", en: "No transactions this month." },
+  monthly_show_transactions: { es: "Ver movimientos", en: "Show transactions" },
+  monthly_hide_transactions: { es: "Ocultar movimientos", en: "Hide transactions" },
+  monthly_transactions_count: { es: "{count} movimientos", en: "{count} transactions" },
+  monthly_positive: { es: "Gastaste menos de lo que ganaste", en: "You spent less than you earned" },
+  monthly_negative: { es: "Gastaste más de lo que ganaste", en: "You spent more than you earned" },
+  monthly_even: { es: "Equilibrio total este mes", en: "Perfectly even this month" },
+  monthly_no_income: { es: "Mes sin ingresos registrados", en: "No income recorded this month" },
+  monthly_compare_spent_more: { es: "Gastaste {pct} más que el mes anterior", en: "You spent {pct} more than last month" },
+  monthly_compare_spent_less: { es: "Gastaste {pct} menos que el mes anterior", en: "You spent {pct} less than last month" },
+  monthly_compare_saved_more: { es: "Ahorraste {pct} más que el mes anterior", en: "You saved {pct} more than last month" },
+  monthly_compare_saved_less: { es: "Ahorraste {pct} menos que el mes anterior", en: "You saved {pct} less than last month" },
+  monthly_compare_first: { es: "Tu primer mes con actividad", en: "Your first month of activity" },
 } as const;
 
 export type TKey = keyof typeof translations;
