@@ -110,7 +110,7 @@ const MetricCard = ({
   );
 };
 
-const Dashboard = ({ expenses, income, loading, onDelete, onEdit, onAddIncome }: Props) => {
+const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
   const { t } = useLanguage();
 
   const {
