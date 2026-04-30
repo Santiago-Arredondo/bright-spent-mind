@@ -67,6 +67,30 @@ export const useExpenses = () => {
     );
   };
 
+  const updateExpense = async (
+    id: string,
+    patch: { amount: number; category: string; note?: string; spent_at?: string }
+  ) => {
+    const { data, error } = await supabase
+      .from("expenses")
+      .update({
+        amount: patch.amount,
+        category: patch.category,
+        description: patch.note ?? null,
+        ...(patch.spent_at ? { date: patch.spent_at.slice(0, 10) } : {}),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    const next = toExpense(data as DbRow);
+    setExpenses((prev) =>
+      prev
+        .map((e) => (e.id === id ? next : e))
+        .sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
+    );
+  };
+
   const deleteExpense = async (id: string) => {
     const prev = expenses;
     setExpenses((p) => p.filter((e) => e.id !== id));
@@ -79,5 +103,5 @@ export const useExpenses = () => {
     }
   };
 
-  return { expenses, loading, addExpense, deleteExpense, reload: load };
+  return { expenses, loading, addExpense, updateExpense, deleteExpense, reload: load };
 };
