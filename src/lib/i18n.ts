@@ -11,6 +11,7 @@ export const translations = {
   // Dashboard
   this_month: { es: "Este mes", en: "This month" },
   today: { es: "Hoy", en: "Today" },
+  today_is: { es: "Hoy es", en: "Today is" },
   entries_this_month: { es: "Registros este mes", en: "Entries this month" },
   avg_per_entry: { es: "Promedio por registro", en: "Avg / entry" },
   recent: { es: "Recientes", en: "Recent" },
