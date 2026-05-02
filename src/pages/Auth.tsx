@@ -103,6 +103,12 @@ const Auth = () => {
             {mode === "signin" ? t("auth_signin_sub") : t("auth_signup_sub")}
           </p>
 
+          {deviceUntrusted && (
+            <div className="mb-4 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
+              {t("new_device_detected")}
+            </div>
+          )}
+
           <Button
             type="button"
             variant="outline"
