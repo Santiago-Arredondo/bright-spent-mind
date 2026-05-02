@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toLocalDateString } from "@/lib/dateOnly";
 
 const schema = z.object({
   amount: z.number().positive().max(1000000000),
