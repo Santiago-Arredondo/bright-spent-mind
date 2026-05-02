@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import { parseLocalDate } from "@/lib/dateOnly";
 
 const localeFor = (lang: Lang) => (lang === "es" ? "es-ES" : "en-US");
 
@@ -21,6 +22,7 @@ export const formatLongDate = (date: Date, lang: Lang) =>
   }).format(date);
 
 export const isSameMonth = (iso: string | Date, ref: Date) => {
-  const d = typeof iso === "string" ? new Date(iso) : iso;
+  const d = parseLocalDate(iso);
   return d.getMonth() === ref.getMonth() && d.getFullYear() === ref.getFullYear();
 };
+

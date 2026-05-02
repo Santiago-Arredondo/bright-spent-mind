@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCategoryOverrides } from "@/hooks/useCategoryOverrides";
 import { suggestCategory } from "@/lib/categorizer";
+import { toLocalDateString } from "@/lib/dateOnly";
 
 const schema = z.object({
   amount: z.number().positive().max(10_000_000_000),
@@ -72,7 +73,7 @@ export const ExpenseForm = ({ onAdd }: Props) => {
         amount: parsed.data.amount,
         category: parsed.data.category,
         note: parsed.data.note,
-        spent_at: parsed.data.spent_at.toISOString(),
+        spent_at: toLocalDateString(parsed.data.spent_at),
       });
 
       // Learn from the user's choice if they had a note.

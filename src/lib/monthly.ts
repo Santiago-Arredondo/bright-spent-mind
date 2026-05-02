@@ -1,5 +1,6 @@
 import type { Expense } from "@/components/ExpenseList";
 import type { Income } from "@/hooks/useIncome";
+import { parseLocalDate } from "@/lib/dateOnly";
 
 export type MonthlyTxn =
   | { kind: "expense"; date: string; data: Expense }
@@ -19,8 +20,12 @@ export interface MonthlyGroup {
   transactions: MonthlyTxn[];
 }
 
+// Parse a YYYY-MM-DD (or full ISO) string as a LOCAL date — avoids
+// the off-by-one-day shift caused by `new Date("2026-05-01")` being UTC.
+const parseLocal = parseLocalDate;
+
 const monthKey = (iso: string) => {
-  const d = new Date(iso);
+  const d = parseLocal(iso);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 
@@ -38,7 +43,7 @@ export const buildMonthlyGroups = (
     const key = monthKey(iso);
     let g = map.get(key);
     if (!g) {
-      const d = new Date(iso);
+      const d = parseLocal(iso);
       g = {
         key,
         year: d.getFullYear(),
