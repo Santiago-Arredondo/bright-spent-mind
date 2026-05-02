@@ -47,7 +47,7 @@ export const EditExpenseDialog = ({ expense, onOpenChange, onUpdate }: Props) =>
       setAmount(String(expense.amount));
       setCategory(expense.category);
       setNote(expense.note ?? "");
-      setDate(new Date(expense.spent_at));
+      setDate(parseLocalDate(expense.spent_at));
     }
   }, [expense?.id]);
 
