@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { getDeviceId, getUserAgent } from "@/lib/deviceId";
@@ -31,58 +31,57 @@ export const trustCurrentDevice = async (userId: string) => {
   );
 };
 
+const isDeviceTrusted = async (userId: string): Promise<boolean> => {
+  const deviceId = getDeviceId();
+  const { data, error } = await supabase
+    .from("trusted_devices")
+    .select("id, expires_at")
+    .eq("user_id", userId)
+    .eq("device_id", deviceId)
+    .maybeSingle();
+  if (error || !data) return false;
+  if (new Date(data.expires_at).getTime() <= Date.now()) return false;
+  await supabase
+    .from("trusted_devices")
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq("id", data.id);
+  return true;
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [deviceUntrusted, setDeviceUntrusted] = useState(false);
-  const validatingFor = useRef<string | null>(null);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
+      if (!s?.user) return;
+      const userId = s.user.id;
+
+      // Defer DB calls to avoid deadlocks inside the auth callback
+      setTimeout(async () => {
+        if (event === "SIGNED_IN") {
+          // Fresh sign-in (password or OAuth) → mark device as trusted
+          await trustCurrentDevice(userId);
+          setDeviceUntrusted(false);
+        } else if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
+          // Restored session → must validate device
+          const ok = await isDeviceTrusted(userId);
+          if (!ok) {
+            setDeviceUntrusted(true);
+            await supabase.auth.signOut();
+          }
+        }
+      }, 0);
     });
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
-
-  // Validate device on every session
-  useEffect(() => {
-    const userId = session?.user?.id;
-    if (!userId) {
-      validatingFor.current = null;
-      return;
-    }
-    if (validatingFor.current === userId) return;
-    validatingFor.current = userId;
-
-    (async () => {
-      const deviceId = getDeviceId();
-      const { data, error } = await supabase
-        .from("trusted_devices")
-        .select("id, expires_at")
-        .eq("user_id", userId)
-        .eq("device_id", deviceId)
-        .maybeSingle();
-
-      if (error) return; // fail open on network error
-      const valid = data && new Date(data.expires_at).getTime() > Date.now();
-
-      if (!valid) {
-        setDeviceUntrusted(true);
-        await supabase.auth.signOut();
-        validatingFor.current = null;
-      } else {
-        // refresh last_seen
-        await supabase
-          .from("trusted_devices")
-          .update({ last_seen_at: new Date().toISOString() })
-          .eq("id", data!.id);
-      }
-    })();
-  }, [session]);
 
   const signOut = async () => {
     const userId = session?.user?.id;
