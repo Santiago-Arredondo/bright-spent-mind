@@ -59,7 +59,7 @@ export const IncomeForm = ({ initial, submitLabel, onSubmit }: Props) => {
         amount: parsed.data.amount,
         source: parsed.data.source,
         description: parsed.data.description,
-        received_at: parsed.data.received_at.toISOString(),
+        received_at: toLocalDateString(parsed.data.received_at),
       });
       if (!initial) {
         setAmount("");
