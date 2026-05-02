@@ -51,8 +51,12 @@ const Auth = () => {
         if (error) throw error;
         toast.success(t("auth_welcome"));
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (data.user) {
+          await trustCurrentDevice(data.user.id);
+          clearUntrusted();
+        }
       }
     } catch (err: any) {
       const msg = String(err?.message || "");
