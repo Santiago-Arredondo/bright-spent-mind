@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { toLocalDateString } from "@/lib/dateOnly";
+import { toLocalDateString, parseLocalDate } from "@/lib/dateOnly";
 
 const schema = z.object({
   amount: z.number().positive().max(1000000000),
@@ -38,7 +38,7 @@ export const IncomeForm = ({ initial, submitLabel, onSubmit }: Props) => {
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [source, setSource] = useState(initial?.source ?? "salary");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [date, setDate] = useState<Date>(initial?.received_at ? new Date(initial.received_at) : new Date());
+  const [date, setDate] = useState<Date>(initial?.received_at ? parseLocalDate(initial.received_at) : new Date());
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {

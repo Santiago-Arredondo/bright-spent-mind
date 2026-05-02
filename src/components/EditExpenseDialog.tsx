@@ -13,7 +13,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Expense } from "@/components/ExpenseList";
-import { toLocalDateString } from "@/lib/dateOnly";
+import { toLocalDateString, parseLocalDate } from "@/lib/dateOnly";
 
 const schema = z.object({
   amount: z.number().positive().max(1000000000),
@@ -47,7 +47,7 @@ export const EditExpenseDialog = ({ expense, onOpenChange, onUpdate }: Props) =>
       setAmount(String(expense.amount));
       setCategory(expense.category);
       setNote(expense.note ?? "");
-      setDate(new Date(expense.spent_at));
+      setDate(parseLocalDate(expense.spent_at));
     }
   }, [expense?.id]);
 
