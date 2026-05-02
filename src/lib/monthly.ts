@@ -1,5 +1,6 @@
 import type { Expense } from "@/components/ExpenseList";
 import type { Income } from "@/hooks/useIncome";
+import { parseLocalDate } from "@/lib/dateOnly";
 
 export type MonthlyTxn =
   | { kind: "expense"; date: string; data: Expense }
