@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, trustCurrentDevice } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
@@ -19,7 +19,7 @@ const schema = z.object({
 
 const Auth = () => {
   const { t, lang } = useLanguage();
-  const { session } = useAuth();
+  const { session, deviceUntrusted, clearUntrusted } = useAuth();
   const nav = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -51,8 +51,12 @@ const Auth = () => {
         if (error) throw error;
         toast.success(t("auth_welcome"));
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (data.user) {
+          await trustCurrentDevice(data.user.id);
+          clearUntrusted();
+        }
       }
     } catch (err: any) {
       const msg = String(err?.message || "");
@@ -98,6 +102,12 @@ const Auth = () => {
           <p className="text-sm text-muted-foreground mb-6">
             {mode === "signin" ? t("auth_signin_sub") : t("auth_signup_sub")}
           </p>
+
+          {deviceUntrusted && (
+            <div className="mb-4 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
+              {t("new_device_detected")}
+            </div>
+          )}
 
           <Button
             type="button"

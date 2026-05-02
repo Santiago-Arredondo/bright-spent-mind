@@ -234,6 +234,12 @@ export const translations = {
   monthly_compare_saved_more: { es: "Ahorraste {pct} más que el mes anterior", en: "You saved {pct} more than last month" },
   monthly_compare_saved_less: { es: "Ahorraste {pct} menos que el mes anterior", en: "You saved {pct} less than last month" },
   monthly_compare_first: { es: "Tu primer mes con actividad", en: "Your first month of activity" },
+
+  // Device security
+  new_device_detected: {
+    es: "Detectamos un nuevo dispositivo. Por seguridad, inicia sesión nuevamente.",
+    en: "We detected a new device. Please log in again for security.",
+  },
 } as const;
 
 export type TKey = keyof typeof translations;
