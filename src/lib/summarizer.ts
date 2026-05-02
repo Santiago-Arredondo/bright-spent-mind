@@ -109,11 +109,11 @@ export const buildSummary = (
 
   // Recent burst: last 3 days vs preceding 7-day average
   const last3 = month.filter((e) => {
-    const days = (now.getTime() - new Date(e.spent_at).getTime()) / 86400000;
+    const days = (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000;
     return days <= 3;
   });
   const prev7 = month.filter((e) => {
-    const days = (now.getTime() - new Date(e.spent_at).getTime()) / 86400000;
+    const days = (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000;
     return days > 3 && days <= 10;
   });
   const last3Avg = last3.reduce((s, e) => s + Number(e.amount), 0) / 3;
