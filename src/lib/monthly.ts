@@ -46,7 +46,7 @@ export const buildMonthlyGroups = (
     const key = monthKey(iso);
     let g = map.get(key);
     if (!g) {
-      const d = new Date(iso);
+      const d = parseLocal(iso);
       g = {
         key,
         year: d.getFullYear(),
