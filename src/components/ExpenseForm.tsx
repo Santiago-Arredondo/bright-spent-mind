@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCategoryOverrides } from "@/hooks/useCategoryOverrides";
 import { suggestCategory } from "@/lib/categorizer";
+import { toLocalDateString } from "@/lib/dateOnly";
 
 const schema = z.object({
   amount: z.number().positive().max(10_000_000_000),
