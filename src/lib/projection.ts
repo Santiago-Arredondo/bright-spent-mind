@@ -16,9 +16,8 @@ export interface MonthProjection {
  * average daily spending so far this month.
  */
 export const projectMonthSpending = (expenses: Expense[], now: Date = new Date()): MonthProjection => {
-  const month = now.getMonth();
   const year = now.getFullYear();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInMonth = new Date(year, now.getMonth() + 1, 0).getDate();
   const daysSoFar = now.getDate();
 
   let monthTotal = 0;
