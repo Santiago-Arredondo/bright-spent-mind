@@ -25,7 +25,6 @@ interface Props {
 export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
   const { t, lang } = useLanguage();
   const emptyMsg = useEmptyMessage("list");
-  const locale = lang === "es" ? "es-ES" : "en-US";
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const formatDate = (iso: string) => {
