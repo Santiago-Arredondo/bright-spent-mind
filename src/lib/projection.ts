@@ -1,4 +1,5 @@
 import type { Expense } from "@/components/ExpenseList";
+import { isSameMonth } from "@/lib/dateFormat";
 
 export interface MonthProjection {
   monthTotal: number;
@@ -22,8 +23,7 @@ export const projectMonthSpending = (expenses: Expense[], now: Date = new Date()
 
   let monthTotal = 0;
   for (const e of expenses) {
-    const d = new Date(e.spent_at);
-    if (d.getMonth() === month && d.getFullYear() === year) {
+    if (isSameMonth(e.spent_at, now)) {
       monthTotal += Number(e.amount) || 0;
     }
   }
