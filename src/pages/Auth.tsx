@@ -19,7 +19,7 @@ const schema = z.object({
 
 const Auth = () => {
   const { t, lang } = useLanguage();
-  const { session } = useAuth();
+  const { session, deviceUntrusted, clearUntrusted } = useAuth();
   const nav = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
