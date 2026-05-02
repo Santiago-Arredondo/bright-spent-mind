@@ -22,11 +22,7 @@ export interface MonthlyGroup {
 
 // Parse a YYYY-MM-DD (or full ISO) string as a LOCAL date — avoids
 // the off-by-one-day shift caused by `new Date("2026-05-01")` being UTC.
-const parseLocal = (iso: string): Date => {
-  const datePart = iso.slice(0, 10);
-  const [y, m, d] = datePart.split("-").map(Number);
-  return new Date(y, (m || 1) - 1, d || 1);
-};
+const parseLocal = parseLocalDate;
 
 const monthKey = (iso: string) => {
   const d = parseLocal(iso);
