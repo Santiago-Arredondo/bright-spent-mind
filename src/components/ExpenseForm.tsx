@@ -15,7 +15,7 @@ import { useCategoryOverrides } from "@/hooks/useCategoryOverrides";
 import { suggestCategory } from "@/lib/categorizer";
 
 const schema = z.object({
-  amount: z.number().positive().max(1000000),
+  amount: z.number().positive().max(10_000_000_000),
   category: z.string().min(1),
   note: z.string().max(140).optional(),
   spent_at: z.date(),
