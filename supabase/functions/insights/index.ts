@@ -85,10 +85,10 @@ function buildSummary(expenses: Exp[], now = new Date()) {
     );
   }
   const last3 = month.filter(
-    (e) => (now.getTime() - new Date(e.spent_at).getTime()) / 86400000 <= 3,
+    (e) => (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000 <= 3,
   );
   const prev7 = month.filter((e) => {
-    const dd = (now.getTime() - new Date(e.spent_at).getTime()) / 86400000;
+    const dd = (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000;
     return dd > 3 && dd <= 10;
   });
   const last3Avg = last3.reduce((s, e) => s + Number(e.amount), 0) / 3;
