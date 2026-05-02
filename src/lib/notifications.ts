@@ -2,6 +2,7 @@ import type { Expense } from "@/components/ExpenseList";
 import { getCategory } from "@/lib/categories";
 import { translations, type Lang, type TKey } from "@/lib/i18n";
 import { formatCOP } from "@/lib/money";
+import { parseLocalDate, toLocalDateString } from "@/lib/dateOnly";
 import type { Tone } from "@/lib/tone";
 
 export type NotificationKind =
@@ -21,7 +22,7 @@ export type AppNotification = {
   priority: number;
 };
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
+const todayKey = () => toLocalDateString(new Date());
 
 const startOfDay = (d: Date) => {
   const x = new Date(d);
@@ -123,7 +124,7 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
   const last28Cutoff = daysAgo(27).getTime();
 
   const inRange = (iso: string, fromMs: number, toMs?: number) => {
-    const t = new Date(iso).getTime();
+    const t = parseLocalDate(iso).getTime();
     return t >= fromMs && (toMs === undefined || t <= toMs + 86_399_000);
   };
 
@@ -136,7 +137,7 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
   // Rule: haven't logged anything today (only if user has logged in last 5 days) ----
   const loggedToday = expenses.some((e) => e.spent_at.slice(0, 10) === today);
   const recentlyActive = expenses.some(
-    (e) => new Date(e.spent_at).getTime() >= daysAgo(4).getTime(),
+    (e) => parseLocalDate(e.spent_at).getTime() >= daysAgo(4).getTime(),
   );
   if (!loggedToday && recentlyActive) {
     const copy = toneCopy("no_log_today", tone, lang);
