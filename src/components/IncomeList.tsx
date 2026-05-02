@@ -4,6 +4,7 @@ import { getIncomeSource } from "@/lib/incomeSources";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCOP } from "@/lib/money";
+import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import type { Income } from "@/hooks/useIncome";
 
@@ -15,16 +16,13 @@ interface Props {
 
 export const IncomeList = ({ income, onDelete, onEdit }: Props) => {
   const { t, lang } = useLanguage();
-  const locale = lang === "es" ? "es-ES" : "en-US";
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    const now = new Date();
-    const diff = (now.getTime() - d.getTime()) / 86400000;
-    if (diff < 1 && d.getDate() === now.getDate()) return t("today_label");
-    if (diff < 2) return t("yesterday");
-    return d.toLocaleDateString(locale, { month: "short", day: "numeric" });
+    const diff = getCalendarDayDistance(iso);
+    if (diff === 0) return t("today_label");
+    if (diff === 1) return t("yesterday");
+    return formatShortMonthDay(iso, lang);
   };
 
   if (income.length === 0) {

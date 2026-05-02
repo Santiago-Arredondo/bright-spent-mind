@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
+import { parseLocalDate, toLocalDateString } from "@/lib/dateOnly";
 import type { Expense } from "./ExpenseList";
 import { readTone, writeTone, type Tone } from "@/lib/tone";
 
@@ -36,7 +37,7 @@ interface CacheShape {
   recent: string[];
 }
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => toLocalDateString(new Date());
 
 /**
  * Fingerprint represents the "shape" of spending. Small additions don't
@@ -51,7 +52,7 @@ const buildFingerprint = (expenses: Expense[]): string => {
   let entries = 0;
   const byCat: Record<string, number> = {};
   for (const e of expenses) {
-    const d = new Date(e.spent_at);
+    const d = parseLocalDate(e.spent_at);
     if (d.getMonth() === m && d.getFullYear() === y) {
       const amt = Number(e.amount) || 0;
       monthTotal += amt;

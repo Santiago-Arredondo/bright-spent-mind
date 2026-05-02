@@ -5,7 +5,7 @@ import { useExpenses } from "@/hooks/useExpenses";
 import { useIncome } from "@/hooks/useIncome";
 import { buildMonthlyGroups, type MonthlyGroup } from "@/lib/monthly";
 import { formatCOP } from "@/lib/money";
-import { formatMonthYear } from "@/lib/dateFormat";
+import { formatDayShortMonth, formatMonthYear } from "@/lib/dateFormat";
 import { getCategory } from "@/lib/categories";
 import { getIncomeSource } from "@/lib/incomeSources";
 import { cn } from "@/lib/utils";
@@ -191,10 +191,7 @@ const MonthCard = ({ group, previous, defaultOpen = false }: MonthCardProps) => 
                 const note = isIncome
                   ? (txn.data as { description: string | null }).description
                   : (txn.data as { note: string | null }).note;
-                const dateLabel = new Date(txn.date).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
-                  day: "2-digit",
-                  month: "short",
-                });
+                const dateLabel = formatDayShortMonth(txn.date, lang);
 
                 return (
                   <li key={`${txn.kind}-${txn.data.id}`} className="flex items-center justify-between gap-3 px-5 py-3">

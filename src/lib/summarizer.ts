@@ -2,6 +2,8 @@
 // Pure functions — no I/O. Used by client (preview/debug) and mirrored in
 // the `insights` edge function.
 
+import { parseLocalDate, toLocalDateString } from "@/lib/dateOnly";
+
 export type SummarizerExpense = {
   amount: number | string;
   category: string;
@@ -32,7 +34,7 @@ export const buildSummary = (
   const yearIdx = now.getFullYear();
 
   const month = expenses.filter((e) => {
-    const d = new Date(e.spent_at);
+    const d = parseLocalDate(e.spent_at);
     return d.getMonth() === monthIdx && d.getFullYear() === yearIdx;
   });
 
@@ -57,7 +59,7 @@ export const buildSummary = (
   let firstSum = 0;
   let secondSum = 0;
   for (const e of month) {
-    const day = new Date(e.spent_at).getDate();
+    const day = parseLocalDate(e.spent_at).getDate();
     if (day <= mid) firstSum += Number(e.amount);
     else secondSum += Number(e.amount);
   }
@@ -79,8 +81,8 @@ export const buildSummary = (
   let weekdayCount = 0;
   const seenDays = new Set<string>();
   for (const e of month) {
-    const d = new Date(e.spent_at);
-    const key = d.toISOString().slice(0, 10);
+    const d = parseLocalDate(e.spent_at);
+    const key = toLocalDateString(d);
     const dow = d.getDay();
     if (dow === 0 || dow === 6) weekendSum += Number(e.amount);
     else weekdaySum += Number(e.amount);
@@ -107,11 +109,11 @@ export const buildSummary = (
 
   // Recent burst: last 3 days vs preceding 7-day average
   const last3 = month.filter((e) => {
-    const days = (now.getTime() - new Date(e.spent_at).getTime()) / 86400000;
+    const days = (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000;
     return days <= 3;
   });
   const prev7 = month.filter((e) => {
-    const days = (now.getTime() - new Date(e.spent_at).getTime()) / 86400000;
+    const days = (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000;
     return days > 3 && days <= 10;
   });
   const last3Avg = last3.reduce((s, e) => s + Number(e.amount), 0) / 3;

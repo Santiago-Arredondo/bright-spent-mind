@@ -8,6 +8,7 @@ import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { formatCOP } from "@/lib/money";
 import { useNow } from "@/hooks/useNow";
 import { formatLongDate, formatMonthYear } from "@/lib/dateFormat";
+import { parseLocalDate } from "@/lib/dateOnly";
 
 interface Props {
   expenses: Expense[];
@@ -26,7 +27,7 @@ const Insights = ({ expenses }: Props) => {
     let total = 0;
     let biggest: Expense | null = null;
     for (const e of expenses) {
-      const d = new Date(e.spent_at);
+      const d = parseLocalDate(e.spent_at);
       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       byMonth[k] = (byMonth[k] || 0) + Number(e.amount);
       byCat[e.category] = (byCat[e.category] || 0) + Number(e.amount);

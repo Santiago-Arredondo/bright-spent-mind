@@ -133,13 +133,12 @@ const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
     let previousTotal = 0;
     let previousCount = 0;
     for (const e of expenses) {
-      const d = new Date(e.spent_at);
-      if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      if (isSameMonth(e.spent_at, now)) {
         monthExpenses.push(e);
         monthTotal += Number(e.amount);
         byCat[e.category] = (byCat[e.category] || 0) + Number(e.amount);
       }
-      if (d.getMonth() === previousMonth.getMonth() && d.getFullYear() === previousMonth.getFullYear()) {
+      if (isSameMonth(e.spent_at, previousMonth)) {
         previousTotal += Number(e.amount);
         previousCount += 1;
       }

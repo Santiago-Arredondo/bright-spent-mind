@@ -3,6 +3,8 @@ import { parseLocalDate } from "@/lib/dateOnly";
 
 const localeFor = (lang: Lang) => (lang === "es" ? "es-ES" : "en-US");
 
+const startOfLocalDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
 /** "Abril 2026" / "April 2026" */
 export const formatMonthYear = (date: Date, lang: Lang) => {
   const s = new Intl.DateTimeFormat(localeFor(lang), {
@@ -24,5 +26,17 @@ export const formatLongDate = (date: Date, lang: Lang) =>
 export const isSameMonth = (iso: string | Date, ref: Date) => {
   const d = parseLocalDate(iso);
   return d.getMonth() === ref.getMonth() && d.getFullYear() === ref.getFullYear();
+};
+
+export const formatShortMonthDay = (iso: string | Date, lang: Lang) =>
+  parseLocalDate(iso).toLocaleDateString(localeFor(lang), { month: "short", day: "numeric" });
+
+export const formatDayShortMonth = (iso: string | Date, lang: Lang) =>
+  parseLocalDate(iso).toLocaleDateString(localeFor(lang), { day: "2-digit", month: "short" });
+
+export const getCalendarDayDistance = (iso: string | Date, ref: Date = new Date()) => {
+  const d = startOfLocalDay(parseLocalDate(iso));
+  const r = startOfLocalDay(ref);
+  return Math.round((r.getTime() - d.getTime()) / 86_400_000);
 };
 

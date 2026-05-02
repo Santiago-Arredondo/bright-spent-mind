@@ -15,6 +15,8 @@ import { getIncomeSource } from "@/lib/incomeSources";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCOP } from "@/lib/money";
+import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
+import { parseLocalDate } from "@/lib/dateOnly";
 import type { Income } from "@/hooks/useIncome";
 
 interface Props {
@@ -102,7 +104,7 @@ const History = ({
       for (const e of expenses) {
         if (cat && e.category !== cat) continue;
         if (query && !(e.note || "").toLowerCase().includes(query.toLowerCase())) continue;
-        const d = new Date(e.spent_at);
+        const d = parseLocalDate(e.spent_at);
         if (from && d < from) continue;
         if (to && d > to) continue;
         list.push({ kind: "expense", date: e.spent_at, data: e });
@@ -112,7 +114,7 @@ const History = ({
       for (const i of income) {
         if (cat) continue; // category filter only applies to expenses
         if (query && !(i.description || "").toLowerCase().includes(query.toLowerCase())) continue;
-        const d = new Date(i.received_at);
+        const d = parseLocalDate(i.received_at);
         if (from && d < from) continue;
         if (to && d > to) continue;
         list.push({ kind: "income", date: i.received_at, data: i });
@@ -132,12 +134,10 @@ const History = ({
   }, [items]);
 
   const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    const now = new Date();
-    const diff = (now.getTime() - d.getTime()) / 86400000;
-    if (diff < 1 && d.getDate() === now.getDate()) return t("today_label");
-    if (diff < 2) return t("yesterday");
-    return d.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", { month: "short", day: "numeric" });
+    const diff = getCalendarDayDistance(iso);
+    if (diff === 0) return t("today_label");
+    if (diff === 1) return t("yesterday");
+    return formatShortMonthDay(iso, lang);
   };
 
   const groups = items.reduce<Record<string, TimelineItem[]>>((acc, it) => {

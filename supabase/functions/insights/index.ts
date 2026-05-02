@@ -10,11 +10,24 @@ const corsHeaders = {
 type Exp = { amount: number | string; category: string; spent_at: string; note?: string | null };
 const round = (n: number, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
 
+const parseLocalDate = (iso: string | Date): Date => {
+  if (iso instanceof Date) return iso;
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+};
+
+const toLocalDateString = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 function buildSummary(expenses: Exp[], now = new Date()) {
   const m = now.getMonth();
   const y = now.getFullYear();
   const month = expenses.filter((e) => {
-    const d = new Date(e.spent_at);
+    const d = parseLocalDate(e.spent_at);
     return d.getMonth() === m && d.getFullYear() === y;
   });
   const monthTotal = month.reduce((s, e) => s + Number(e.amount), 0);
@@ -32,7 +45,7 @@ function buildSummary(expenses: Exp[], now = new Date()) {
   let firstSum = 0;
   let secondSum = 0;
   for (const e of month) {
-    const d = new Date(e.spent_at).getDate();
+    const d = parseLocalDate(e.spent_at).getDate();
     if (d <= mid) firstSum += Number(e.amount);
     else secondSum += Number(e.amount);
   }
@@ -50,8 +63,8 @@ function buildSummary(expenses: Exp[], now = new Date()) {
     weekdayDays = 0;
   const seen = new Set<string>();
   for (const e of month) {
-    const d = new Date(e.spent_at);
-    const key = d.toISOString().slice(0, 10);
+    const d = parseLocalDate(e.spent_at);
+    const key = toLocalDateString(d);
     const dow = d.getDay();
     if (dow === 0 || dow === 6) weekendSum += Number(e.amount);
     else weekdaySum += Number(e.amount);
@@ -72,10 +85,10 @@ function buildSummary(expenses: Exp[], now = new Date()) {
     );
   }
   const last3 = month.filter(
-    (e) => (now.getTime() - new Date(e.spent_at).getTime()) / 86400000 <= 3,
+    (e) => (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000 <= 3,
   );
   const prev7 = month.filter((e) => {
-    const dd = (now.getTime() - new Date(e.spent_at).getTime()) / 86400000;
+    const dd = (now.getTime() - parseLocalDate(e.spent_at).getTime()) / 86400000;
     return dd > 3 && dd <= 10;
   });
   const last3Avg = last3.reduce((s, e) => s + Number(e.amount), 0) / 3;

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { computeNotifications, type AppNotification } from "@/lib/notifications";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { readTone } from "@/lib/tone";
+import { toLocalDateString } from "@/lib/dateOnly";
 import type { Expense } from "@/components/ExpenseList";
 
 const DISMISS_KEY = "coin.notifs.dismissed";
@@ -59,7 +60,7 @@ export const useNotifications = (expenses: Expense[]) => {
 
   // Garbage-collect old dismissed ids once a day so the set doesn't grow forever
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = toLocalDateString(new Date());
     const lastSweep = localStorage.getItem("coin.notifs.lastSweep");
     if (lastSweep === today) return;
     localStorage.setItem("coin.notifs.lastSweep", today);

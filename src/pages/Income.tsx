@@ -6,6 +6,7 @@ import { EditIncomeDialog } from "@/components/EditIncomeDialog";
 import { AddIncomeDialog } from "@/components/AddIncomeDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCOP } from "@/lib/money";
+import { isSameMonth } from "@/lib/dateFormat";
 import type { Income } from "@/hooks/useIncome";
 
 interface Props {
@@ -27,10 +28,7 @@ const IncomePage = ({ income, loading, onAdd, onUpdate, onDelete }: Props) => {
   const monthTotal = useMemo(() => {
     const now = new Date();
     return income
-      .filter((i) => {
-        const d = new Date(i.received_at);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      })
+      .filter((i) => isSameMonth(i.received_at, now))
       .reduce((s, i) => s + Number(i.amount), 0);
   }, [income]);
 
