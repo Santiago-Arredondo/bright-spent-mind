@@ -70,7 +70,7 @@ export const EditExpenseDialog = ({ expense, onOpenChange, onUpdate }: Props) =>
         amount: parsed.data.amount,
         category: parsed.data.category,
         note: parsed.data.note,
-        spent_at: parsed.data.spent_at.toISOString(),
+        spent_at: toLocalDateString(parsed.data.spent_at),
       });
       toast.success(t("expense_updated"));
       onOpenChange(false);
