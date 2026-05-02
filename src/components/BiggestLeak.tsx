@@ -3,6 +3,7 @@ import { Droplets, Flame } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { getCategory } from "@/lib/categories";
+import { isSameMonth } from "@/lib/dateFormat";
 import { formatCOP } from "@/lib/money";
 import type { Expense } from "./ExpenseList";
 
@@ -22,8 +23,7 @@ export const BiggestLeak = ({ expenses }: Props) => {
     const byCat: Record<string, number> = {};
     let total = 0;
     for (const e of expenses) {
-      const d = new Date(e.spent_at);
-      if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      if (isSameMonth(e.spent_at, now)) {
         const amt = Number(e.amount) || 0;
         byCat[e.category] = (byCat[e.category] || 0) + amt;
         total += amt;
