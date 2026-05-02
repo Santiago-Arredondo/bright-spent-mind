@@ -38,7 +38,7 @@ export const IncomeForm = ({ initial, submitLabel, onSubmit }: Props) => {
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [source, setSource] = useState(initial?.source ?? "salary");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [date, setDate] = useState<Date>(initial?.received_at ? new Date(initial.received_at) : new Date());
+  const [date, setDate] = useState<Date>(initial?.received_at ? parseLocalDate(initial.received_at) : new Date());
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
