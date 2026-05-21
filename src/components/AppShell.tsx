@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Sparkles, History as HistoryIcon, Plus, Wallet, LogOut, TrendingUp, CalendarRange } from "lucide-react";
+import { LayoutDashboard, Sparkles, History as HistoryIcon, Plus, Wallet, LogOut, TrendingUp, CalendarRange, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,6 +32,7 @@ export const AppShell = ({ children, onAddClick, onAddIncomeClick, expenses }: P
     { to: "/monthly", label: t("nav_monthly"), icon: CalendarRange },
     { to: "/history", label: t("nav_history"), icon: HistoryIcon },
     { to: "/income", label: t("nav_income"), icon: TrendingUp },
+    { to: "/categories", label: t("nav_categories"), icon: Tag },
   ];
 
   return (

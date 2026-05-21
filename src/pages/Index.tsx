@@ -12,6 +12,7 @@ import Insights from "./Insights";
 import History from "./History";
 import IncomePage from "./Income";
 import Monthly from "./Monthly";
+import Categories from "./Categories";
 import NotFound from "./NotFound";
 
 const Index = () => {
@@ -70,6 +71,7 @@ const Index = () => {
           }
         />
         <Route path="/monthly" element={<Monthly />} />
+        <Route path="/categories" element={<Categories />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
