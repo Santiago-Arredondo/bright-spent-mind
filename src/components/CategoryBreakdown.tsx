@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { CATEGORIES } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { formatCOP } from "@/lib/money";
@@ -11,6 +11,7 @@ interface Props {
 
 export const CategoryBreakdown = ({ expenses }: Props) => {
   const { t } = useLanguage();
+  const { categories } = useCategories();
   const emptyMsg = useEmptyMessage("breakdown");
   const { totals, total } = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -22,7 +23,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
     return { totals, total };
   }, [expenses]);
 
-  const sorted = CATEGORIES.map((c) => ({ ...c, value: totals[c.id] || 0 }))
+  const sorted = categories.map((c) => ({ ...c, value: totals[c.slug] || 0 }))
     .filter((c) => c.value > 0)
     .sort((a, b) => b.value - a.value);
 
@@ -47,7 +48,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
           <div
             key={c.id}
             style={{ width: `${(c.value / total) * 100}%`, backgroundColor: `hsl(${c.color})` }}
-            title={`${t(c.labelKey)}: ${formatCOP(c.value)}`}
+            title={`${c.name}: ${formatCOP(c.value)}`}
           />
         ))}
       </div>
@@ -62,7 +63,7 @@ export const CategoryBreakdown = ({ expenses }: Props) => {
                 style={{ backgroundColor: `hsl(${c.color})` }}
               />
               <span className="flex-1 text-sm">
-                {c.emoji} {t(c.labelKey)}
+                {c.icon} {c.name}
               </span>
               <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">
                 {pct.toFixed(0)}%

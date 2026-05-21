@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { CATEGORIES } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { formatCOP } from "@/lib/money";
@@ -11,6 +11,7 @@ interface Props {
 
 export const CategoryChart = ({ expenses }: Props) => {
   const { t } = useLanguage();
+  const { categories } = useCategories();
   const emptyMsg = useEmptyMessage("breakdown");
 
   const data = useMemo(() => {
@@ -18,12 +19,12 @@ export const CategoryChart = ({ expenses }: Props) => {
     for (const e of expenses) {
       totals[e.category] = (totals[e.category] || 0) + Number(e.amount);
     }
-    const rows = CATEGORIES.map((c) => ({ ...c, value: totals[c.id] || 0 })).filter(
+    const rows = categories.map((c) => ({ ...c, value: totals[c.slug] || 0 })).filter(
       (c) => c.value > 0,
     );
     const max = Math.max(1, ...rows.map((r) => r.value));
     return rows.sort((a, b) => b.value - a.value).map((r) => ({ ...r, pct: (r.value / max) * 100 }));
-  }, [expenses]);
+  }, [expenses, categories]);
 
   if (data.length === 0) {
     return (
@@ -42,8 +43,8 @@ export const CategoryChart = ({ expenses }: Props) => {
           <li key={c.id}>
             <div className="flex items-center justify-between text-sm mb-1.5">
               <span className="flex items-center gap-2">
-                <span>{c.emoji}</span>
-                <span>{t(c.labelKey)}</span>
+                <span>{c.icon}</span>
+                <span>{c.name}</span>
               </span>
               <span className="tabular-nums font-medium">{formatCOP(c.value)}</span>
             </div>

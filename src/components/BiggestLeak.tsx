@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Droplets, Flame } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
-import { getCategory } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { isSameMonth } from "@/lib/dateFormat";
 import { formatCOP } from "@/lib/money";
 import type { Expense } from "./ExpenseList";
@@ -17,6 +17,7 @@ const interpolate = (s: string, vars: Record<string, string>) =>
 export const BiggestLeak = ({ expenses }: Props) => {
   const { t } = useLanguage();
   const emptyMsg = useEmptyMessage("leak");
+  const { getCategory } = useCategories();
 
   const { topId, topAmount, total, share } = useMemo(() => {
     const now = new Date();
@@ -91,10 +92,10 @@ export const BiggestLeak = ({ expenses }: Props) => {
                 style={{ backgroundColor: `hsl(${cat.color} / 0.20)` }}
               >
                 <Flame className="absolute -right-1 -top-1 h-4 w-4 text-warning" aria-hidden />
-                {cat.emoji}
+                {cat.icon}
               </div>
               <p className="font-display text-2xl leading-tight text-foreground">
-                {interpolate(t("leak_body"), { category: t(cat.labelKey) })}
+                {interpolate(t("leak_body"), { category: cat.name })}
               </p>
             </div>
             <p className="text-xs text-muted-foreground">
