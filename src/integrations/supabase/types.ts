@@ -18,20 +18,35 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          icon: string
           id: string
           name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+          user_id: string
         }
         Insert: {
           color?: string
           created_at?: string
+          icon?: string
           id?: string
           name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
         }
         Update: {
           color?: string
           created_at?: string
+          icon?: string
           id?: string
           name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -184,7 +199,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      seed_default_categories: {
+        Args: { _lang: string; _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
