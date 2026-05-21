@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { computeNotifications, type AppNotification } from "@/lib/notifications";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { readTone } from "@/lib/tone";
 import { toLocalDateString } from "@/lib/dateOnly";
 import type { Expense } from "@/components/ExpenseList";
@@ -30,14 +31,22 @@ const saveDismissed = (ids: string[]) => {
 
 export const useNotifications = (expenses: Expense[]) => {
   const { lang } = useLanguage();
+  const { getCategory } = useCategories();
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set(loadDismissed()));
   const tone = readTone();
 
-  // Recompute when expenses, language, tone, or dismissed set changes
+  const lookup = useCallback(
+    (slug: string) => {
+      const c = getCategory(slug);
+      return { name: c.name, icon: c.icon };
+    },
+    [getCategory]
+  );
+
   const notifications = useMemo<AppNotification[]>(() => {
-    const all = computeNotifications(expenses, lang, tone);
+    const all = computeNotifications(expenses, lang, tone, lookup);
     return all.filter((n) => !dismissed.has(n.id));
-  }, [expenses, lang, tone, dismissed]);
+  }, [expenses, lang, tone, dismissed, lookup]);
 
   const dismiss = useCallback((id: string) => {
     setDismissed((prev) => {
@@ -52,11 +61,11 @@ export const useNotifications = (expenses: Expense[]) => {
   const dismissAll = useCallback(() => {
     setDismissed((prev) => {
       const next = new Set(prev);
-      for (const n of computeNotifications(expenses, lang, tone)) next.add(n.id);
+      for (const n of computeNotifications(expenses, lang, tone, lookup)) next.add(n.id);
       saveDismissed(Array.from(next));
       return next;
     });
-  }, [expenses, lang, tone]);
+  }, [expenses, lang, tone, lookup]);
 
   // Garbage-collect old dismissed ids once a day so the set doesn't grow forever
   useEffect(() => {

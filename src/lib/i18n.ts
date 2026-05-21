@@ -240,6 +240,39 @@ export const translations = {
     es: "Detectamos un nuevo dispositivo. Por seguridad, inicia sesión nuevamente.",
     en: "We detected a new device. Please log in again for security.",
   },
+
+  // Categories management
+  nav_categories: { es: "Categorías", en: "Categories" },
+  cat_manage_title: { es: "Tus categorías", en: "Your categories" },
+  cat_manage_subtitle: {
+    es: "Crea, edita y elimina las categorías que usas para organizar tus gastos.",
+    en: "Create, edit and remove the categories you use to organize your spending.",
+  },
+  cat_new: { es: "Nueva", en: "New" },
+  cat_new_title: { es: "Nueva categoría", en: "New category" },
+  cat_edit_title: { es: "Editar categoría", en: "Edit category" },
+  cat_name: { es: "Nombre", en: "Name" },
+  cat_name_placeholder: { es: "Ej. Café", en: "e.g. Coffee" },
+  cat_name_required: { es: "Ponle un nombre a la categoría", en: "Give the category a name" },
+  cat_icon: { es: "Icono", en: "Icon" },
+  cat_color: { es: "Color", en: "Color" },
+  cat_empty: { es: "Aún no tienes categorías. Crea la primera.", en: "No categories yet. Create your first one." },
+  cat_expenses_using: { es: "gastos", en: "expenses" },
+  cat_created: { es: "Categoría creada ✨", en: "Category created ✨" },
+  cat_updated: { es: "Categoría actualizada", en: "Category updated" },
+  cat_deleted: { es: "Categoría eliminada", en: "Category deleted" },
+  cat_delete_title: { es: "Eliminar", en: "Delete" },
+  cat_delete_safe: {
+    es: "Esta categoría no tiene gastos asociados. Se eliminará de forma permanente.",
+    en: "This category has no linked expenses. It will be permanently removed.",
+  },
+  cat_delete_has_expenses: {
+    es: "Esta categoría tiene {n} gastos. Elige qué hacer con ellos.",
+    en: "This category has {n} expenses. Choose what to do with them.",
+  },
+  cat_delete_reassign: { es: "Mover los gastos a otra categoría", en: "Move expenses to another category" },
+  cat_delete_block: { es: "No eliminar (cancelar)", en: "Don't delete (cancel)" },
+  cat_delete_blocked: { es: "Hay gastos asociados a esta categoría.", en: "There are expenses linked to this category." },
 } as const;
 
 export type TKey = keyof typeof translations;

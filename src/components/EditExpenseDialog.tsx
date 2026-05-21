@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CATEGORIES } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ interface Props {
 
 export const EditExpenseDialog = ({ expense, onOpenChange, onUpdate }: Props) => {
   const { t, lang } = useLanguage();
+  const { categories } = useCategories();
   const dateLocale = lang === "es" ? esLocale : undefined;
   const open = !!expense;
 
@@ -103,18 +104,18 @@ export const EditExpenseDialog = ({ expense, onOpenChange, onUpdate }: Props) =>
           <div className="mb-5">
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("category")}</p>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <button
-                  key={c.id} type="button" onClick={() => setCategory(c.id)}
+                  key={c.id} type="button" onClick={() => setCategory(c.slug)}
                   className={cn(
                     "px-3 py-2 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border",
-                    category === c.id
+                    category === c.slug
                       ? "bg-primary text-primary-foreground border-primary shadow-glow scale-[1.03]"
                       : "bg-secondary border-transparent hover:border-border hover:bg-muted"
                   )}
                 >
-                  <span>{c.emoji}</span>
-                  <span>{t(c.labelKey)}</span>
+                  <span>{c.icon}</span>
+                  <span>{c.name}</span>
                 </button>
               ))}
             </div>

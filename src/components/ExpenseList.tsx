@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { getCategory } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
@@ -24,6 +24,7 @@ interface Props {
 
 export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
   const { t, lang } = useLanguage();
+  const { getCategory } = useCategories();
   const emptyMsg = useEmptyMessage("list");
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
@@ -59,7 +60,7 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
             <div className="bg-card rounded-2xl shadow-card border border-border overflow-hidden">
               {items.map((e, i) => {
                 const cat = getCategory(e.category);
-                const catLabel = t(cat.labelKey);
+                const catLabel = cat.name;
                 return (
                   <div
                     key={e.id}
@@ -72,7 +73,7 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
                       className="h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0 transition-smooth group-hover:scale-110"
                       style={{ backgroundColor: `hsl(${cat.color} / 0.15)` }}
                     >
-                      {cat.emoji}
+                      {cat.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate text-sm sm:text-base">{e.note || catLabel}</p>

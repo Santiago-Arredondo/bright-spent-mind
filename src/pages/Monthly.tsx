@@ -6,7 +6,7 @@ import { useIncome } from "@/hooks/useIncome";
 import { buildMonthlyGroups, type MonthlyGroup } from "@/lib/monthly";
 import { formatCOP } from "@/lib/money";
 import { formatDayShortMonth, formatMonthYear } from "@/lib/dateFormat";
-import { getCategory } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { getIncomeSource } from "@/lib/incomeSources";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ interface MonthCardProps {
 
 const MonthCard = ({ group, previous, defaultOpen = false }: MonthCardProps) => {
   const { t, lang } = useLanguage();
+  const { getCategory } = useCategories();
   const [open, setOpen] = useState(defaultOpen);
 
   const noActivity = group.totalIncome === 0 && group.totalExpenses === 0;
@@ -184,9 +185,10 @@ const MonthCard = ({ group, previous, defaultOpen = false }: MonthCardProps) => 
             <ul className="divide-y divide-border/50">
               {group.transactions.map((txn) => {
                 const isIncome = txn.kind === "income";
-                const meta = isIncome
-                  ? getIncomeSource((txn.data as { source: string }).source)
-                  : getCategory((txn.data as { category: string }).category);
+                const incomeMeta = isIncome ? getIncomeSource((txn.data as { source: string }).source) : null;
+                const catMeta = !isIncome ? getCategory((txn.data as { category: string }).category) : null;
+                const icon = isIncome ? incomeMeta!.emoji : catMeta!.icon;
+                const name = isIncome ? t(incomeMeta!.labelKey) : catMeta!.name;
                 const amount = Number(txn.data.amount);
                 const note = isIncome
                   ? (txn.data as { description: string | null }).description
@@ -196,10 +198,10 @@ const MonthCard = ({ group, previous, defaultOpen = false }: MonthCardProps) => 
                 return (
                   <li key={`${txn.kind}-${txn.data.id}`} className="flex items-center justify-between gap-3 px-5 py-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-lg shrink-0">{meta.emoji}</span>
+                      <span className="text-lg shrink-0">{icon}</span>
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {t(meta.labelKey)}
+                          {name}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {dateLabel}
