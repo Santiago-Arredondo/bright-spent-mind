@@ -18,7 +18,7 @@ import { BiggestLeak } from "@/components/BiggestLeak";
 import { BalanceCard } from "@/components/BalanceCard";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getCategory } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { formatCOP } from "@/lib/money";
 import { useNow } from "@/hooks/useNow";
 import { formatLongDate, formatMonthYear, isSameMonth } from "@/lib/dateFormat";
@@ -114,6 +114,7 @@ const MetricCard = ({
 
 const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
   const { t, lang } = useLanguage();
+  const { getCategory } = useCategories();
   const now = useNow();
 
   const {
@@ -230,8 +231,8 @@ const Dashboard = ({ expenses, income, loading, onDelete, onEdit }: Props) => {
           value={
             topCat ? (
               <span className="flex min-w-0 items-center gap-1.5">
-              <span className="text-base">{topCat.emoji}</span>
-              <span className="truncate">{t(topCat.labelKey)}</span>
+              <span className="text-base">{topCat.icon}</span>
+              <span className="truncate">{topCat.name}</span>
               </span>
           ) : (
               <span className="text-base text-muted-foreground">{t("no_category_yet")}</span>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CATEGORIES, getCategory } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -30,25 +30,32 @@ export const ExpenseForm = ({ onAdd }: Props) => {
   const { t, lang } = useLanguage();
   const dateLocale = lang === "es" ? esLocale : undefined;
   const { overrides, remember } = useCategoryOverrides();
+  const { categories, getCategory } = useCategories();
 
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("food");
+  const [category, setCategory] = useState<string>(categories[0]?.slug ?? "other");
   const [note, setNote] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [busy, setBusy] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
-  // Tracks whether the user has manually changed the category for the current note.
   const userTouchedCategory = useRef(false);
   const [suggestion, setSuggestion] = useState<{ category: string; source: string } | null>(null);
 
-  // Auto-suggest category from note while user types (unless they overrode it)
+  // Keep selected category valid when list loads/changes
+  useEffect(() => {
+    if (categories.length === 0) return;
+    if (!categories.some((c) => c.slug === category)) {
+      setCategory(categories[0].slug);
+    }
+  }, [categories, category]);
+
   useEffect(() => {
     const s = suggestCategory(note, overrides);
     setSuggestion(s.source === "default" ? null : { category: s.category, source: s.source });
-    if (!userTouchedCategory.current && s.source !== "default") {
+    if (!userTouchedCategory.current && s.source !== "default" && categories.some((c) => c.slug === s.category)) {
       setCategory(s.category);
     }
-  }, [note, overrides]);
+  }, [note, overrides, categories]);
 
   const pickCategory = (id: string) => {
     setCategory(id);
@@ -135,25 +142,25 @@ export const ExpenseForm = ({ onAdd }: Props) => {
           {suggestion && !userTouchedCategory.current && (
             <span className="inline-flex items-center gap-1 text-xs text-primary">
               <Sparkles className="h-3 w-3" />
-              {t("auto_detected")}: {getCategory(suggestion.category).emoji} {t(getCategory(suggestion.category).labelKey)}
+              {t("auto_detected")}: {getCategory(suggestion.category).icon} {getCategory(suggestion.category).name}
             </span>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               key={c.id}
               type="button"
-              onClick={() => pickCategory(c.id)}
+              onClick={() => pickCategory(c.slug)}
               className={cn(
                 "px-3 py-2 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border hover:-translate-y-0.5 active:scale-95",
-                category === c.id
+                category === c.slug
                   ? "bg-primary text-primary-foreground border-primary shadow-glow scale-[1.03]"
                   : "bg-secondary border-transparent hover:border-border hover:bg-muted"
               )}
             >
-              <span>{c.emoji}</span>
-              <span>{t(c.labelKey)}</span>
+              <span>{c.icon}</span>
+              <span>{c.name}</span>
             </button>
           ))}
         </div>

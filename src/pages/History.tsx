@@ -10,7 +10,7 @@ import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { EditIncomeDialog } from "@/components/EditIncomeDialog";
 import { type Expense } from "@/components/ExpenseList";
-import { CATEGORIES, getCategory } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { getIncomeSource } from "@/lib/incomeSources";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -62,6 +62,7 @@ const History = ({
   onUpdateIncome,
 }: Props) => {
   const { t, lang } = useLanguage();
+  const { categories, getCategory } = useCategories();
   const dateLocale = lang === "es" ? esLocale : undefined;
   const [query, setQuery] = useState("");
   const [type, setType] = useState<TypeFilter>("all");
@@ -256,17 +257,17 @@ const History = ({
             >
               {t("all")}
             </button>
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <button
                 key={c.id}
-                onClick={() => setCat(c.id === cat ? null : c.id)}
+                onClick={() => setCat(c.slug === cat ? null : c.slug)}
                 className={cn(
                   "px-3 py-1.5 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border",
-                  cat === c.id ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-transparent hover:border-border"
+                  cat === c.slug ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-transparent hover:border-border"
                 )}
               >
-                <span>{c.emoji}</span>
-                <span>{t(c.labelKey)}</span>
+                <span>{c.icon}</span>
+                <span>{c.name}</span>
               </button>
             ))}
           </div>
@@ -288,9 +289,9 @@ const History = ({
                   const cat = isExpense ? getCategory((it.data as Expense).category) : null;
                   const src = !isExpense ? getIncomeSource((it.data as Income).source) : null;
                   const label = isExpense
-                    ? (it.data as Expense).note || t(cat!.labelKey)
+                    ? (it.data as Expense).note || cat!.name
                     : (it.data as Income).description || t(src!.labelKey);
-                  const sub = isExpense ? t(cat!.labelKey) : t(src!.labelKey);
+                  const sub = isExpense ? cat!.name : t(src!.labelKey);
                   return (
                     <div
                       key={`${it.kind}-${it.data.id}`}
@@ -308,7 +309,7 @@ const History = ({
                         )}
                         style={isExpense ? { backgroundColor: `hsl(${cat!.color} / 0.15)` } : undefined}
                       >
-                        {isExpense ? cat!.emoji : src!.emoji}
+                        {isExpense ? cat!.icon : src!.emoji}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate text-sm sm:text-base">{label}</p>

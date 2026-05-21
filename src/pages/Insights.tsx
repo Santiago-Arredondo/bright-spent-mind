@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { Expense } from "@/components/ExpenseList";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { AIInsight } from "@/components/AIInsight";
-import { getCategory } from "@/lib/categories";
+import { useCategories } from "@/contexts/CategoriesContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { formatCOP } from "@/lib/money";
@@ -16,6 +16,7 @@ interface Props {
 
 const Insights = ({ expenses }: Props) => {
   const { t, lang } = useLanguage();
+  const { getCategory } = useCategories();
   const trendEmpty = useEmptyMessage("trend");
   const now = useNow();
   const locale = lang === "es" ? "es-ES" : "en-US";
@@ -77,7 +78,7 @@ const Insights = ({ expenses }: Props) => {
               <div>
                 <p className="text-xs text-muted-foreground">{t("top_category")}</p>
                 <p className="font-display text-2xl">
-                  {topCat.emoji} {t(topCat.labelKey)}
+                  {topCat.icon} {topCat.name}
                 </p>
               </div>
             )}
