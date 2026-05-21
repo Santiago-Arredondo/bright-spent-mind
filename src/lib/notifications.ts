@@ -1,5 +1,4 @@
 import type { Expense } from "@/components/ExpenseList";
-import { getCategory } from "@/lib/categories";
 import { translations, type Lang, type TKey } from "@/lib/i18n";
 import { formatCOP } from "@/lib/money";
 import { parseLocalDate, toLocalDateString } from "@/lib/dateOnly";
@@ -13,14 +12,14 @@ export type NotificationKind =
   | "streak_encourage";
 
 export type AppNotification = {
-  /** Stable per-day id so dismissals naturally reset the next day. */
   id: string;
   kind: NotificationKind;
   title: string;
   body: string;
-  /** Lower = more important. */
   priority: number;
 };
+
+export type CategoryLookup = (slug: string) => { name: string; icon: string };
 
 const todayKey = () => toLocalDateString(new Date());
 
@@ -103,23 +102,23 @@ const toneCopy = (kind: NotificationKind, tone: Tone, lang: Lang, vars?: Record<
   notificationCopy[kind][tone](lang, vars);
 
 const fmtMoney = (n: number) => formatCOP(n, { decimals: n < 10 ? 2 : 0 });
-
 const fmtPct = (frac: number) => `${Math.round(frac * 100)}%`;
-
 const sumAmount = (xs: Expense[]) => xs.reduce((s, e) => s + Number(e.amount), 0);
 
-/**
- * Compute notifications from the user's expenses + selected language.
- * Pure function — UI layer decides which to show / dismiss.
- */
-export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone = "neutral"): AppNotification[] {
+const defaultLookup: CategoryLookup = (slug) => ({ name: slug, icon: "✨" });
+
+export function computeNotifications(
+  expenses: Expense[],
+  lang: Lang,
+  tone: Tone = "neutral",
+  lookup: CategoryLookup = defaultLookup,
+): AppNotification[] {
   const out: AppNotification[] = [];
   const today = todayKey();
 
   if (expenses.length === 0) return out;
 
-  // Helpers ----------------------------------------------------------------
-  const last7Cutoff = daysAgo(6).getTime(); // includes today
+  const last7Cutoff = daysAgo(6).getTime();
   const last14To8Cutoff = { from: daysAgo(13).getTime(), to: daysAgo(7).getTime() };
   const last28Cutoff = daysAgo(27).getTime();
 
@@ -134,23 +133,15 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
   );
   const last28 = expenses.filter((e) => inRange(e.spent_at, last28Cutoff));
 
-  // Rule: haven't logged anything today (only if user has logged in last 5 days) ----
   const loggedToday = expenses.some((e) => e.spent_at.slice(0, 10) === today);
   const recentlyActive = expenses.some(
     (e) => parseLocalDate(e.spent_at).getTime() >= daysAgo(4).getTime(),
   );
   if (!loggedToday && recentlyActive) {
     const copy = toneCopy("no_log_today", tone, lang);
-    out.push({
-      id: `no_log_today:${today}`,
-      kind: "no_log_today",
-      title: copy.title,
-      body: copy.body,
-      priority: 30,
-    });
+    out.push({ id: `no_log_today:${today}`, kind: "no_log_today", title: copy.title, body: copy.body, priority: 30 });
   }
 
-  // Rule: weekly spike vs 4-week daily average ----------------------------
   if (week.length >= 3 && last28.length >= 7) {
     const weekTotal = sumAmount(week);
     const monthTotal = sumAmount(last28);
@@ -158,21 +149,11 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
     const weekDailyAvg = weekTotal / 7;
     if (monthDailyAvg > 0 && weekDailyAvg > monthDailyAvg * 1.3) {
       const overPct = (weekDailyAvg - monthDailyAvg) / monthDailyAvg;
-      const copy = toneCopy("weekly_spike", tone, lang, {
-        pct: fmtPct(overPct),
-        amount: fmtMoney(weekTotal),
-      });
-      out.push({
-        id: `weekly_spike:${today}`,
-        kind: "weekly_spike",
-        title: copy.title,
-        body: copy.body,
-        priority: 10,
-      });
+      const copy = toneCopy("weekly_spike", tone, lang, { pct: fmtPct(overPct), amount: fmtMoney(weekTotal) });
+      out.push({ id: `weekly_spike:${today}`, kind: "weekly_spike", title: copy.title, body: copy.body, priority: 10 });
     }
   }
 
-  // Rule: category spike vs prior week ------------------------------------
   if (week.length >= 2 && prevWeek.length >= 1) {
     const byCatNow: Record<string, number> = {};
     const byCatPrev: Record<string, number> = {};
@@ -182,29 +163,19 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
     let topCat: { id: string; now: number; prev: number; delta: number } | null = null;
     for (const [id, now] of Object.entries(byCatNow)) {
       const prev = byCatPrev[id] ?? 0;
-      if (prev <= 0 || now < 5) continue; // need a real baseline + meaningful amount
+      if (prev <= 0 || now < 5) continue;
       const delta = (now - prev) / prev;
       if (delta < 0.4) continue;
       if (!topCat || delta > topCat.delta) topCat = { id, now, prev, delta };
     }
     if (topCat) {
-      const cat = getCategory(topCat.id);
-      const catLabel = `${cat.emoji} ${tt(cat.labelKey, lang)}`;
-      const copy = toneCopy("category_spike", tone, lang, {
-        category: catLabel,
-        pct: fmtPct(topCat.delta),
-      });
-      out.push({
-        id: `category_spike:${topCat.id}:${today}`,
-        kind: "category_spike",
-        title: copy.title,
-        body: copy.body,
-        priority: 20,
-      });
+      const cat = lookup(topCat.id);
+      const catLabel = `${cat.icon} ${cat.name}`;
+      const copy = toneCopy("category_spike", tone, lang, { category: catLabel, pct: fmtPct(topCat.delta) });
+      out.push({ id: `category_spike:${topCat.id}:${today}`, kind: "category_spike", title: copy.title, body: copy.body, priority: 20 });
     }
   }
 
-  // Rule: single big outlier in last 7 days -------------------------------
   if (week.length >= 3) {
     const weekTotal = sumAmount(week);
     const biggest = week.reduce<Expense | null>(
@@ -212,31 +183,18 @@ export function computeNotifications(expenses: Expense[], lang: Lang, tone: Tone
       null,
     );
     if (biggest && weekTotal > 0 && Number(biggest.amount) >= weekTotal * 0.4 && Number(biggest.amount) >= 20) {
-      const cat = getCategory(biggest.category);
+      const cat = lookup(biggest.category);
       const copy = toneCopy("big_outlier", tone, lang, {
         amount: fmtMoney(Number(biggest.amount)),
-        category: `${cat.emoji} ${tt(cat.labelKey, lang)}`,
+        category: `${cat.icon} ${cat.name}`,
       });
-      out.push({
-        id: `big_outlier:${biggest.id}`,
-        kind: "big_outlier",
-        title: copy.title,
-        body: copy.body,
-        priority: 40,
-      });
+      out.push({ id: `big_outlier:${biggest.id}`, kind: "big_outlier", title: copy.title, body: copy.body, priority: 40 });
     }
   }
 
-  // Rule: gentle nudge for brand-new users with only one expense ----------
   if (expenses.length === 1) {
     const copy = toneCopy("streak_encourage", tone, lang);
-    out.push({
-      id: `streak_encourage:${today}`,
-      kind: "streak_encourage",
-      title: copy.title,
-      body: copy.body,
-      priority: 50,
-    });
+    out.push({ id: `streak_encourage:${today}`, kind: "streak_encourage", title: copy.title, body: copy.body, priority: 50 });
   }
 
   return out.sort((a, b) => a.priority - b.priority);
