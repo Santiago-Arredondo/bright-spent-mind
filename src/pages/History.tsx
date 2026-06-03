@@ -17,6 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCOP } from "@/lib/money";
 import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
 import { parseLocalDate } from "@/lib/dateOnly";
+import { filterTransactions } from "@/lib/search";
 import type { Income } from "@/hooks/useIncome";
 
 interface Props {
