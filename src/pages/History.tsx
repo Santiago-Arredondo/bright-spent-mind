@@ -101,29 +101,19 @@ const History = ({
   };
 
   const items = useMemo<TimelineItem[]>(() => {
-    const list: TimelineItem[] = [];
-    if (type !== "income") {
-      for (const e of expenses) {
-        if (cat && e.category !== cat) continue;
-        if (query && !(e.note || "").toLowerCase().includes(query.toLowerCase())) continue;
-        const d = parseLocalDate(e.spent_at);
-        if (from && d < from) continue;
-        if (to && d > to) continue;
-        list.push({ kind: "expense", date: e.spent_at, data: e });
-      }
-    }
-    if (type !== "expense") {
-      for (const i of income) {
-        if (cat) continue; // category filter only applies to expenses
-        if (query && !(i.description || "").toLowerCase().includes(query.toLowerCase())) continue;
-        const d = parseLocalDate(i.received_at);
-        if (from && d < from) continue;
-        if (to && d > to) continue;
-        list.push({ kind: "income", date: i.received_at, data: i });
-      }
-    }
-    return list.sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [expenses, income, query, cat, from, to, type]);
+    const matched = filterTransactions(
+      expenses,
+      income,
+      { query, type, category: cat, from, to },
+      categories,
+      lang
+    );
+    return matched.map((it) =>
+      it.kind === "expense"
+        ? { kind: "expense", date: it.date, data: it.data }
+        : { kind: "income", date: it.date, data: it.data }
+    );
+  }, [expenses, income, query, cat, from, to, type, categories, lang]);
 
   const totals = useMemo(() => {
     let inc = 0,
