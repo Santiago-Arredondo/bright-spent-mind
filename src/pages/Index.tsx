@@ -13,6 +13,7 @@ import History from "./History";
 import IncomePage from "./Income";
 import Monthly from "./Monthly";
 import Categories from "./Categories";
+import SearchPage from "./Search";
 import NotFound from "./NotFound";
 
 const Index = () => {
