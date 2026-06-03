@@ -73,6 +73,7 @@ const Index = () => {
         />
         <Route path="/monthly" element={<Monthly />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
