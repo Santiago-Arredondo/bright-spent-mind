@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Sparkles, History as HistoryIcon, Plus, Wallet, LogOut, TrendingUp, CalendarRange, Tag } from "lucide-react";
+import { LayoutDashboard, Sparkles, History as HistoryIcon, Plus, Wallet, LogOut, TrendingUp, CalendarRange, Tag, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
