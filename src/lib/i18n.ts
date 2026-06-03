@@ -273,6 +273,26 @@ export const translations = {
   cat_delete_reassign: { es: "Mover los gastos a otra categoría", en: "Move expenses to another category" },
   cat_delete_block: { es: "No eliminar (cancelar)", en: "Don't delete (cancel)" },
   cat_delete_blocked: { es: "Hay gastos asociados a esta categoría.", en: "There are expenses linked to this category." },
+
+  // Global search
+  nav_search: { es: "Buscar", en: "Search" },
+  search_title: { es: "Buscar movimientos", en: "Search transactions" },
+  search_subtitle: {
+    es: "Encuentra cualquier gasto o ingreso por descripción, categoría, fuente o monto.",
+    en: "Find any expense or income by description, category, source, or amount.",
+  },
+  search_placeholder: { es: "Buscar gastos o ingresos...", en: "Search expenses or income..." },
+  search_min: { es: "Mín", en: "Min" },
+  search_max: { es: "Máx", en: "Max" },
+  search_count: { es: "Resultados", en: "Results" },
+  search_total_spent: { es: "Total gastado", en: "Total spent" },
+  search_average: { es: "Promedio", en: "Average" },
+  search_top_category: { es: "Categoría principal", en: "Top category" },
+  search_empty_title: { es: "No se encontraron resultados", en: "No results found" },
+  search_empty_sub: {
+    es: "Prueba con otra palabra clave o ajusta los filtros.",
+    en: "Try a different keyword or adjust the filters.",
+  },
 } as const;
 
 export type TKey = keyof typeof translations;
