@@ -29,6 +29,7 @@ export const AppShell = ({ children, onAddClick, onAddIncomeClick, expenses }: P
   const navItems = [
     { to: "/", label: t("nav_dashboard"), icon: LayoutDashboard },
     { to: "/insights", label: t("nav_insights"), icon: Sparkles },
+    { to: "/search", label: t("nav_search"), icon: Search },
     { to: "/monthly", label: t("nav_monthly"), icon: CalendarRange },
     { to: "/history", label: t("nav_history"), icon: HistoryIcon },
     { to: "/income", label: t("nav_income"), icon: TrendingUp },
