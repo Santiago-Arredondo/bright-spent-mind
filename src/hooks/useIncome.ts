@@ -69,6 +69,7 @@ export const useIncome = () => {
     if (error) throw error;
     const next = toIncome(data as DbRow);
     setIncome((prev) => [next, ...prev].sort((a, b) => (a.received_at < b.received_at ? 1 : -1)));
+    void syncEmbeddings();
   };
 
   const updateIncome = async (
