@@ -95,19 +95,21 @@ export const CategoriesProvider = ({ children }: { children: React.ReactNode }) 
     if (error) throw error;
     const next = data as Category;
     setCategories((prev) => [...prev, next].sort((a, b) => a.sort_order - b.sort_order));
+    void syncEmbeddings();
     return next;
   };
 
   const updateCategory: Ctx["updateCategory"] = async (id, patch) => {
     const { data, error } = await supabase
       .from("categories")
-      .update(patch)
+      .update({ ...patch, embedding: null, embedding_model: null })
       .eq("id", id)
       .select("id, slug, name, color, icon, sort_order")
       .single();
     if (error) throw error;
     const next = data as Category;
     setCategories((prev) => prev.map((c) => (c.id === id ? next : c)));
+    void syncEmbeddings();
   };
 
   const deleteCategory: Ctx["deleteCategory"] = async (id, opts) => {
