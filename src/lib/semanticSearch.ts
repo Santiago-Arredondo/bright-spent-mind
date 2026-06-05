@@ -21,9 +21,11 @@ export const semanticSearch = async (
     );
     if (embedErr || !embedRes?.embedding) return empty;
 
+    // pgvector accepts the bracket-literal string form: "[0.1,0.2,...]"
+    const vectorLiteral = `[${(embedRes.embedding as number[]).join(",")}]`;
     const { data, error } = await supabase.rpc("match_user_transactions", {
       _user_id: userId,
-      _query: embedRes.embedding as unknown as string,
+      _query: vectorLiteral,
       _match_count: matchCount,
     });
     if (error || !data) return empty;
