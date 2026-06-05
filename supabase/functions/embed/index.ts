@@ -136,13 +136,14 @@ Deno.serve(async (req) => {
       for (const group of chunk(tasks, BATCH)) {
         const vecs = await embedTexts(apiKey, group.map((g) => g.text.slice(0, 2000)));
         await Promise.all(
-          group.map((g, i) =>
-            admin
+          group.map((g, i) => {
+            const literal = `[${vecs[i].join(",")}]`;
+            return admin
               .from(g.table)
-              .update({ embedding: vecs[i] as unknown as string, embedding_model: MODEL })
+              .update({ embedding: literal, embedding_model: MODEL })
               .eq("id", g.id)
-              .eq("user_id", userId)
-          )
+              .eq("user_id", userId);
+          })
         );
         updated += group.length;
       }
