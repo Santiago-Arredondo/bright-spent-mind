@@ -293,6 +293,11 @@ export const translations = {
     es: "Prueba con otra palabra clave o ajusta los filtros.",
     en: "Try a different keyword or adjust the filters.",
   },
+  search_semantic_hint: {
+    es: "Búsqueda inteligente activada — encuentra por significado.",
+    en: "Smart search enabled — find by meaning.",
+  },
+  search_semantic_badge: { es: "Similar", en: "Similar" },
 } as const;
 
 export type TKey = keyof typeof translations;
