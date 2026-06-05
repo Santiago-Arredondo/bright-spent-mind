@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Expense } from "@/components/ExpenseList";
 import { toast } from "sonner";
+import { syncEmbeddings } from "@/lib/semanticSearch";
 
 // DB row shape (new schema) → app shape (Expense)
 type DbRow = {
@@ -65,6 +66,7 @@ export const useExpenses = () => {
     setExpenses((prev) =>
       [next, ...prev].sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
     );
+    void syncEmbeddings();
   };
 
   const updateExpense = async (
@@ -77,6 +79,8 @@ export const useExpenses = () => {
         amount: patch.amount,
         category: patch.category,
         description: patch.note ?? null,
+        embedding: null,
+        embedding_model: null,
         ...(patch.spent_at ? { date: patch.spent_at.slice(0, 10) } : {}),
       })
       .eq("id", id)
@@ -89,6 +93,7 @@ export const useExpenses = () => {
         .map((e) => (e.id === id ? next : e))
         .sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
     );
+    void syncEmbeddings();
   };
 
   const deleteExpense = async (id: string) => {

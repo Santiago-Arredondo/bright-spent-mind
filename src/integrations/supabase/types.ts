@@ -18,6 +18,8 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          embedding: string | null
+          embedding_model: string | null
           icon: string
           id: string
           name: string
@@ -29,6 +31,8 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          embedding?: string | null
+          embedding_model?: string | null
           icon?: string
           id?: string
           name: string
@@ -40,6 +44,8 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          embedding?: string | null
+          embedding_model?: string | null
           icon?: string
           id?: string
           name?: string
@@ -87,6 +93,8 @@ export type Database = {
           created_at: string
           date: string
           description: string | null
+          embedding: string | null
+          embedding_model: string | null
           id: string
           user_id: string
         }
@@ -96,6 +104,8 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string | null
+          embedding?: string | null
+          embedding_model?: string | null
           id?: string
           user_id: string
         }
@@ -105,6 +115,8 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string | null
+          embedding?: string | null
+          embedding_model?: string | null
           id?: string
           user_id?: string
         }
@@ -116,6 +128,8 @@ export type Database = {
           created_at: string
           date: string
           description: string | null
+          embedding: string | null
+          embedding_model: string | null
           id: string
           source: string
           user_id: string
@@ -125,6 +139,8 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string | null
+          embedding?: string | null
+          embedding_model?: string | null
           id?: string
           source?: string
           user_id: string
@@ -134,6 +150,8 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string | null
+          embedding?: string | null
+          embedding_model?: string | null
           id?: string
           source?: string
           user_id?: string
@@ -199,6 +217,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      match_user_transactions: {
+        Args: { _match_count?: number; _query: string; _user_id: string }
+        Returns: {
+          kind: string
+          row_id: string
+          similarity: number
+        }[]
+      }
       seed_default_categories: {
         Args: { _lang: string; _user_id: string }
         Returns: undefined

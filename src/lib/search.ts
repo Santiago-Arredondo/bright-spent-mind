@@ -36,22 +36,44 @@ export interface SearchFilters {
   maxAmount?: number;
 }
 
+export type ScoredItem = SearchItem & {
+  /** keyword match (literal substring or amount) */
+  keyword: boolean;
+  /** semantic similarity 0–1 from vector search; 0 if not in semantic set */
+  similarity: number;
+};
+
 export const filterTransactions = (
   expenses: Expense[],
   income: Income[],
   filters: SearchFilters,
   cats: Category[],
-  lang: Lang
-): SearchItem[] => {
+  lang: Lang,
+  semantic?: Map<string, number>
+): ScoredItem[] => {
   const q = normalize(filters.query.trim());
   const catMap = categoryNameBySlug(cats);
   const srcMap = sourceLabelById(lang);
-  const list: SearchItem[] = [];
+  const list: ScoredItem[] = [];
+  const hasQuery = q.length > 0;
+  const sem = semantic ?? new Map<string, number>();
+
+  // Categories that semantically match the query — used to surface
+  // expenses tagged with that category even when the row itself wasn't
+  // returned by the vector search.
+  const semCatSlugs = new Set<string>();
+  if (sem.size) {
+    for (const [k] of sem) {
+      if (!k.startsWith("category:")) continue;
+      const id = k.slice("category:".length);
+      const cat = cats.find((c) => c.id === id);
+      if (cat) semCatSlugs.add(cat.slug);
+    }
+  }
 
   const matches = (haystacks: string[], amount: number): boolean => {
     if (!q) return true;
     if (haystacks.some((h) => h && normalize(h).includes(q))) return true;
-    // amount substring match (digits only on both sides)
     const qDigits = q.replace(/\D/g, "");
     if (qDigits && String(Math.round(amount)).includes(qDigits)) return true;
     return false;
@@ -78,8 +100,20 @@ export const filterTransactions = (
       if (!inDate(e.spent_at)) continue;
       if (!inAmount(Number(e.amount))) continue;
       const catName = catMap.get(e.category) || e.category;
-      if (!matches([e.note || "", catName, e.category], Number(e.amount))) continue;
-      list.push({ kind: "expense", date: e.spent_at, amount: Number(e.amount), data: e });
+      const keyword = !hasQuery || matches([e.note || "", catName, e.category], Number(e.amount));
+      const semKey = `expense:${e.id}`;
+      const semScore = sem.get(semKey) ?? 0;
+      const catBoost = semCatSlugs.has(e.category) ? 0.4 : 0;
+      const similarity = Math.max(semScore, catBoost);
+      if (hasQuery && !keyword && similarity === 0) continue;
+      list.push({
+        kind: "expense",
+        date: e.spent_at,
+        amount: Number(e.amount),
+        data: e,
+        keyword,
+        similarity,
+      });
     }
   }
   if (filters.type !== "expense") {
@@ -88,11 +122,31 @@ export const filterTransactions = (
       if (!inDate(i.received_at)) continue;
       if (!inAmount(Number(i.amount))) continue;
       const srcName = srcMap.get(i.source) || i.source;
-      if (!matches([i.description || "", srcName, i.source], Number(i.amount))) continue;
-      list.push({ kind: "income", date: i.received_at, amount: Number(i.amount), data: i });
+      const keyword = !hasQuery || matches([i.description || "", srcName, i.source], Number(i.amount));
+      const similarity = sem.get(`income:${i.id}`) ?? 0;
+      if (hasQuery && !keyword && similarity === 0) continue;
+      list.push({
+        kind: "income",
+        date: i.received_at,
+        amount: Number(i.amount),
+        data: i,
+        keyword,
+        similarity,
+      });
     }
   }
-  return list.sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  if (!hasQuery) {
+    return list.sort((a, b) => (a.date < b.date ? 1 : -1));
+  }
+
+  // Blended relevance score. Keyword hits always rank above pure semantic.
+  const score = (it: ScoredItem) => (it.keyword ? 1 : 0) + it.similarity * 0.8;
+  return list.sort((a, b) => {
+    const diff = score(b) - score(a);
+    if (Math.abs(diff) > 0.001) return diff;
+    return a.date < b.date ? 1 : -1;
+  });
 };
 
 export interface SearchSummary {

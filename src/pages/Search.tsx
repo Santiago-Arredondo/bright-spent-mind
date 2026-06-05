@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Search as SearchIcon, CalendarIcon, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search as SearchIcon, CalendarIcon, X, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useIncome } from "@/hooks/useIncome";
 import { useCategories } from "@/contexts/CategoriesContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { formatCOP } from "@/lib/money";
 import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
@@ -20,6 +21,7 @@ import {
   highlightSegments,
   type SearchFilters,
 } from "@/lib/search";
+import { semanticSearch, syncEmbeddings, type SemanticScore } from "@/lib/semanticSearch";
 import type { Expense } from "@/components/ExpenseList";
 import type { Income } from "@/hooks/useIncome";
 
@@ -53,10 +55,22 @@ const HL = ({ text, query }: { text: string; query: string }) => {
 
 const SearchPage = () => {
   const { t, lang } = useLanguage();
+  const { user } = useAuth();
   const { expenses, loading: lExp } = useExpenses();
   const { income, loading: lInc } = useIncome();
   const { categories, getCategory } = useCategories();
   const dateLocale = lang === "es" ? esLocale : undefined;
+
+  const [semantic, setSemantic] = useState<SemanticScore>(new Map());
+
+  // Best-effort backfill embeddings once per session for this user.
+  useEffect(() => {
+    if (!user?.id) return;
+    const key = `flowbit_emb_sync_${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    syncEmbeddings();
+  }, [user?.id]);
 
   const [query, setQuery] = useState("");
   const [type, setType] = useState<SearchFilters["type"]>("all");
@@ -79,9 +93,23 @@ const SearchPage = () => {
     [query, type, cat, from, to, minAmount, maxAmount]
   );
 
+  // Debounced semantic search (only when query has enough signal)
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 3 || !user?.id) {
+      setSemantic(new Map());
+      return;
+    }
+    const handle = setTimeout(async () => {
+      const map = await semanticSearch(q, user.id);
+      setSemantic(map);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [query, user?.id]);
+
   const items = useMemo(
-    () => filterTransactions(expenses, income, filters, categories, lang),
-    [expenses, income, filters, categories, lang]
+    () => filterTransactions(expenses, income, filters, categories, lang, semantic),
+    [expenses, income, filters, categories, lang, semantic]
   );
   const summary = useMemo(() => summarize(items, categories), [items, categories]);
 
@@ -151,6 +179,10 @@ const SearchPage = () => {
             autoFocus
           />
         </div>
+        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 -mt-1">
+          <Sparkles className="h-3 w-3" />
+          {t("search_semantic_hint")}
+        </p>
 
         {/* Type */}
         <div className="flex items-center gap-1 bg-secondary rounded-full p-1 w-fit">
@@ -410,8 +442,16 @@ const SearchPage = () => {
                   {isExpense ? catMeta!.icon : srcMeta!.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate text-sm sm:text-base">
-                    <HL text={primary} query={query} />
+                  <p className="font-medium truncate text-sm sm:text-base flex items-center gap-1.5">
+                    <span className="truncate">
+                      <HL text={primary} query={query} />
+                    </span>
+                    {!it.keyword && it.similarity > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-primary bg-primary/10 rounded-full px-1.5 py-0.5 shrink-0">
+                        <Sparkles className="h-2.5 w-2.5" />
+                        {t("search_semantic_badge")}
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     <HL text={sub} query={query} /> · {formatDate(it.date)}
