@@ -66,6 +66,7 @@ export const useExpenses = () => {
     setExpenses((prev) =>
       [next, ...prev].sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
     );
+    void syncEmbeddings();
   };
 
   const updateExpense = async (
