@@ -442,8 +442,16 @@ const SearchPage = () => {
                   {isExpense ? catMeta!.icon : srcMeta!.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate text-sm sm:text-base">
-                    <HL text={primary} query={query} />
+                  <p className="font-medium truncate text-sm sm:text-base flex items-center gap-1.5">
+                    <span className="truncate">
+                      <HL text={primary} query={query} />
+                    </span>
+                    {!it.keyword && it.similarity > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-primary bg-primary/10 rounded-full px-1.5 py-0.5 shrink-0">
+                        <Sparkles className="h-2.5 w-2.5" />
+                        {t("search_semantic_badge")}
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     <HL text={sub} query={query} /> · {formatDate(it.date)}
