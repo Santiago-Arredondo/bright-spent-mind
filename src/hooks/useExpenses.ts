@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Expense } from "@/components/ExpenseList";
 import { toast } from "sonner";
+import { syncEmbeddings } from "@/lib/semanticSearch";
 
 // DB row shape (new schema) → app shape (Expense)
 type DbRow = {
