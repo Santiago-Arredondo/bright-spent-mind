@@ -82,6 +82,8 @@ export const useIncome = () => {
         amount: patch.amount,
         source: patch.source,
         description: patch.description ?? null,
+        embedding: null,
+        embedding_model: null,
         ...(patch.received_at ? { date: patch.received_at.slice(0, 10) } : {}),
       })
       .eq("id", id)
@@ -94,6 +96,7 @@ export const useIncome = () => {
         .map((i) => (i.id === id ? next : i))
         .sort((a, b) => (a.received_at < b.received_at ? 1 : -1))
     );
+    void syncEmbeddings();
   };
 
   const deleteIncome = async (id: string) => {
