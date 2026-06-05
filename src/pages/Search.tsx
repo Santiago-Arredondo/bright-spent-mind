@@ -71,9 +71,6 @@ const SearchPage = () => {
     sessionStorage.setItem(key, "1");
     syncEmbeddings();
   }, [user?.id]);
-  const { income, loading: lInc } = useIncome();
-  const { categories, getCategory } = useCategories();
-  const dateLocale = lang === "es" ? esLocale : undefined;
 
   const [query, setQuery] = useState("");
   const [type, setType] = useState<SearchFilters["type"]>("all");
