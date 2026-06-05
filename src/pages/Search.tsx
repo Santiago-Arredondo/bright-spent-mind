@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Search as SearchIcon, CalendarIcon, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search as SearchIcon, CalendarIcon, X, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useIncome } from "@/hooks/useIncome";
 import { useCategories } from "@/contexts/CategoriesContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { formatCOP } from "@/lib/money";
 import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
@@ -20,6 +21,7 @@ import {
   highlightSegments,
   type SearchFilters,
 } from "@/lib/search";
+import { semanticSearch, syncEmbeddings, type SemanticScore } from "@/lib/semanticSearch";
 import type { Expense } from "@/components/ExpenseList";
 import type { Income } from "@/hooks/useIncome";
 
