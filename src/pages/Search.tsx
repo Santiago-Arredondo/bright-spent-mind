@@ -55,7 +55,22 @@ const HL = ({ text, query }: { text: string; query: string }) => {
 
 const SearchPage = () => {
   const { t, lang } = useLanguage();
+  const { user } = useAuth();
   const { expenses, loading: lExp } = useExpenses();
+  const { income, loading: lInc } = useIncome();
+  const { categories, getCategory } = useCategories();
+  const dateLocale = lang === "es" ? esLocale : undefined;
+
+  const [semantic, setSemantic] = useState<SemanticScore>(new Map());
+
+  // Best-effort backfill embeddings once per session for this user.
+  useEffect(() => {
+    if (!user?.id) return;
+    const key = `flowbit_emb_sync_${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    syncEmbeddings();
+  }, [user?.id]);
   const { income, loading: lInc } = useIncome();
   const { categories, getCategory } = useCategories();
   const dateLocale = lang === "es" ? esLocale : undefined;
