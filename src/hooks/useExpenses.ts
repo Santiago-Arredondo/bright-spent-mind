@@ -91,6 +91,7 @@ export const useExpenses = () => {
         .map((e) => (e.id === id ? next : e))
         .sort((a, b) => (a.spent_at < b.spent_at ? 1 : -1))
     );
+    void syncEmbeddings();
   };
 
   const deleteExpense = async (id: string) => {
