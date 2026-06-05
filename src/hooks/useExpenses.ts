@@ -79,6 +79,8 @@ export const useExpenses = () => {
         amount: patch.amount,
         category: patch.category,
         description: patch.note ?? null,
+        embedding: null,
+        embedding_model: null,
         ...(patch.spent_at ? { date: patch.spent_at.slice(0, 10) } : {}),
       })
       .eq("id", id)
