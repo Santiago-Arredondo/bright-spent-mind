@@ -93,9 +93,23 @@ const SearchPage = () => {
     [query, type, cat, from, to, minAmount, maxAmount]
   );
 
+  // Debounced semantic search (only when query has enough signal)
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 3 || !user?.id) {
+      setSemantic(new Map());
+      return;
+    }
+    const handle = setTimeout(async () => {
+      const map = await semanticSearch(q, user.id);
+      setSemantic(map);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [query, user?.id]);
+
   const items = useMemo(
-    () => filterTransactions(expenses, income, filters, categories, lang),
-    [expenses, income, filters, categories, lang]
+    () => filterTransactions(expenses, income, filters, categories, lang, semantic),
+    [expenses, income, filters, categories, lang, semantic]
   );
   const summary = useMemo(() => summarize(items, categories), [items, categories]);
 
