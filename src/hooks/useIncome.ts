@@ -37,6 +37,7 @@ export const useIncome = () => {
     const { data, error } = await supabase
       .from("income")
       .select("*")
+      .is("deleted_at", null)
       .order("date", { ascending: false })
       .limit(500);
     if (error) toast.error("Couldn't load income");
@@ -99,17 +100,40 @@ export const useIncome = () => {
     void syncEmbeddings();
   };
 
+  /** Soft delete (moves to Trash). */
   const deleteIncome = async (id: string) => {
     const prev = income;
     setIncome((p) => p.filter((i) => i.id !== id));
-    const { error } = await supabase.from("income").delete().eq("id", id);
+    const { error } = await supabase
+      .from("income")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
     if (error) {
       setIncome(prev);
       toast.error("Couldn't delete");
     } else {
-      toast.success("Removed");
+      toast.success("Moved to Trash");
     }
   };
 
-  return { income, loading, addIncome, updateIncome, deleteIncome, reload: load };
+  const deleteIncomeBulk = async (ids: string[]): Promise<number> => {
+    if (!ids.length) return 0;
+    const prev = income;
+    setIncome((p) => p.filter((i) => !ids.includes(i.id)));
+    const { error } = await supabase
+      .from("income")
+      .update({ deleted_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) {
+      setIncome(prev);
+      toast.error("Couldn't delete");
+      return 0;
+    }
+    return ids.length;
+  };
+
+  return {
+    income, loading, addIncome, updateIncome, deleteIncome,
+    deleteIncomeBulk, reload: load,
+  };
 };

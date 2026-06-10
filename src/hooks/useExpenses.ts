@@ -4,7 +4,6 @@ import type { Expense } from "@/components/ExpenseList";
 import { toast } from "sonner";
 import { syncEmbeddings } from "@/lib/semanticSearch";
 
-// DB row shape (new schema) → app shape (Expense)
 type DbRow = {
   id: string;
   amount: number;
@@ -31,6 +30,7 @@ export const useExpenses = () => {
     const { data, error } = await supabase
       .from("expenses")
       .select("*")
+      .is("deleted_at", null)
       .order("date", { ascending: false })
       .limit(500);
     if (error) toast.error("Couldn't load expenses");
@@ -96,17 +96,41 @@ export const useExpenses = () => {
     void syncEmbeddings();
   };
 
+  /** Soft delete (moves to Trash). */
   const deleteExpense = async (id: string) => {
     const prev = expenses;
     setExpenses((p) => p.filter((e) => e.id !== id));
-    const { error } = await supabase.from("expenses").delete().eq("id", id);
+    const { error } = await supabase
+      .from("expenses")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
     if (error) {
       setExpenses(prev);
       toast.error("Couldn't delete");
     } else {
-      toast.success("Removed");
+      toast.success("Moved to Trash");
     }
   };
 
-  return { expenses, loading, addExpense, updateExpense, deleteExpense, reload: load };
+  /** Bulk soft delete. Returns count successfully moved. */
+  const deleteExpensesBulk = async (ids: string[]): Promise<number> => {
+    if (!ids.length) return 0;
+    const prev = expenses;
+    setExpenses((p) => p.filter((e) => !ids.includes(e.id)));
+    const { error } = await supabase
+      .from("expenses")
+      .update({ deleted_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) {
+      setExpenses(prev);
+      toast.error("Couldn't delete");
+      return 0;
+    }
+    return ids.length;
+  };
+
+  return {
+    expenses, loading, addExpense, updateExpense, deleteExpense,
+    deleteExpensesBulk, reload: load,
+  };
 };
