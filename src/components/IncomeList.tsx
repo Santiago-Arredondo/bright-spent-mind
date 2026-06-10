@@ -2,19 +2,28 @@ import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { getIncomeSource } from "@/lib/incomeSources";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCOP } from "@/lib/money";
 import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { cn } from "@/lib/utils";
 import type { Income } from "@/hooks/useIncome";
+
+interface SelectionApi {
+  mode: boolean;
+  isSelected: (compositeId: string) => boolean;
+  toggle: (compositeId: string) => void;
+}
 
 interface Props {
   income: Income[];
   onDelete: (id: string) => void;
   onEdit?: (income: Income) => void;
+  selection?: SelectionApi;
 }
 
-export const IncomeList = ({ income, onDelete, onEdit }: Props) => {
+export const IncomeList = ({ income, onDelete, onEdit, selection }: Props) => {
   const { t, lang } = useLanguage();
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
@@ -41,6 +50,8 @@ export const IncomeList = ({ income, onDelete, onEdit }: Props) => {
     return acc;
   }, {});
 
+  const selectionMode = !!selection?.mode;
+
   return (
     <>
       <div className="space-y-6">
@@ -51,14 +62,29 @@ export const IncomeList = ({ income, onDelete, onEdit }: Props) => {
               {items.map((e, i) => {
                 const src = getIncomeSource(e.source);
                 const srcLabel = t(src.labelKey);
+                const compId = `income:${e.id}`;
+                const selected = selection?.isSelected(compId) ?? false;
                 return (
                   <div
                     key={e.id}
-                    className={`group flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-smooth animate-fade-in-up hover:bg-muted/45 ${
-                      i !== items.length - 1 ? "border-b border-border" : ""
-                    }`}
+                    onClick={selectionMode ? () => selection!.toggle(compId) : undefined}
+                    className={cn(
+                      "group flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-smooth animate-fade-in-up hover:bg-muted/45",
+                      i !== items.length - 1 ? "border-b border-border" : "",
+                      selectionMode && "cursor-pointer select-none",
+                      selected && "bg-primary/5"
+                    )}
                     style={{ animationDelay: `${Math.min(i * 35, 140)}ms` }}
                   >
+                    {selectionMode && (
+                      <Checkbox
+                        checked={selected}
+                        onCheckedChange={() => selection!.toggle(compId)}
+                        onClick={(ev) => ev.stopPropagation()}
+                        aria-label={t("bulk_select")}
+                        className="h-5 w-5 shrink-0"
+                      />
+                    )}
                     <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0 bg-success-soft text-success">
                       {src.emoji}
                     </div>
@@ -69,28 +95,30 @@ export const IncomeList = ({ income, onDelete, onEdit }: Props) => {
                     <p className="font-display text-base sm:text-lg tabular-nums text-success">
                       +{formatCOP(e.amount, { decimals: 0 })}
                     </p>
-                    <div className="flex items-center gap-0.5 shrink-0">
-                      {onEdit && (
+                    {!selectionMode && (
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        {onEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(e)}
+                            aria-label={t("edit")}
+                            className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-primary"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => onEdit(e)}
-                          aria-label={t("edit")}
-                          className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => setPendingDelete(e.id)}
+                          aria-label={t("delete")}
+                          className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setPendingDelete(e.id)}
-                        aria-label={t("delete")}
-                        className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -298,6 +298,46 @@ export const translations = {
     en: "Smart search enabled — find by meaning.",
   },
   search_semantic_badge: { es: "Similar", en: "Similar" },
+
+  // Bulk selection
+  bulk_select: { es: "Seleccionar", en: "Select" },
+  bulk_selected_count: { es: "{n} seleccionados", en: "{n} selected" },
+  bulk_select_all: { es: "Seleccionar todo", en: "Select all" },
+  bulk_deselect_all: { es: "Deseleccionar todo", en: "Deselect all" },
+  bulk_delete: { es: "Eliminar seleccionados", en: "Delete selected" },
+  bulk_delete_confirm_title: {
+    es: "¿Eliminar {n} registros?",
+    en: "Delete {n} records?",
+  },
+  bulk_delete_confirm_desc: {
+    es: "Se moverán a la Papelera y podrás restaurarlos durante 30 días.",
+    en: "They will be moved to Trash and can be restored within 30 days.",
+  },
+  bulk_deleted_toast: { es: "{n} movidos a la papelera", en: "{n} moved to Trash" },
+
+  // Trash
+  nav_trash: { es: "Papelera", en: "Trash" },
+  trash_title: { es: "Papelera", en: "Trash" },
+  trash_subtitle: {
+    es: "Los registros se eliminan permanentemente después de 30 días.",
+    en: "Records are permanently deleted after 30 days.",
+  },
+  trash_empty: { es: "La papelera está vacía.", en: "Trash is empty." },
+  trash_deleted_on: { es: "Eliminado", en: "Deleted" },
+  trash_days_left: { es: "{n} días restantes", en: "{n} days left" },
+  trash_restore: { es: "Restaurar", en: "Restore" },
+  trash_delete_forever: { es: "Eliminar definitivamente", en: "Delete permanently" },
+  trash_empty_all: { es: "Vaciar papelera", en: "Empty trash" },
+  trash_restored_toast: { es: "Registros restaurados", en: "Records restored" },
+  trash_purged_toast: { es: "Eliminados definitivamente", en: "Permanently deleted" },
+  trash_purge_confirm_title: {
+    es: "¿Eliminar definitivamente {n} registros?",
+    en: "Permanently delete {n} records?",
+  },
+  trash_purge_confirm_desc: {
+    es: "Esta acción no se puede deshacer.",
+    en: "This action cannot be undone.",
+  },
 } as const;
 
 export type TKey = keyof typeof translations;

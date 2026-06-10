@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
-import { Search, CalendarIcon, X, Pencil, Trash2 } from "lucide-react";
+import { Search, CalendarIcon, X, Pencil, Trash2, CheckSquare } from "lucide-react";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { BulkActionBar } from "@/components/BulkActionBar";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { EditIncomeDialog } from "@/components/EditIncomeDialog";
 import { type Expense } from "@/components/ExpenseList";
@@ -17,6 +19,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCOP } from "@/lib/money";
 import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
 import { filterTransactions } from "@/lib/search";
+import { useBulkSelection } from "@/hooks/useBulkSelection";
+import { splitSelection } from "@/lib/bulkActions";
+import { toast } from "sonner";
 import type { Income } from "@/hooks/useIncome";
 
 interface Props {
@@ -33,6 +38,8 @@ interface Props {
     id: string,
     patch: { amount: number; source: string; description?: string; received_at?: string }
   ) => Promise<void>;
+  onDeleteExpensesBulk: (ids: string[]) => Promise<number>;
+  onDeleteIncomeBulk: (ids: string[]) => Promise<number>;
 }
 
 type TypeFilter = "all" | "expense" | "income";
@@ -41,25 +48,13 @@ type TimelineItem =
   | { kind: "expense"; date: string; data: Expense }
   | { kind: "income"; date: string; data: Income };
 
-const startOfDay = (d: Date) => {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-};
-const endOfDay = (d: Date) => {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
-  return x;
-};
+const startOfDay = (d: Date) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const endOfDay = (d: Date) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
 
 const History = ({
-  expenses,
-  income,
-  loading,
-  onDeleteExpense,
-  onDeleteIncome,
-  onUpdateExpense,
-  onUpdateIncome,
+  expenses, income, loading,
+  onDeleteExpense, onDeleteIncome, onUpdateExpense, onUpdateIncome,
+  onDeleteExpensesBulk, onDeleteIncomeBulk,
 }: Props) => {
   const { t, lang } = useLanguage();
   const { categories, getCategory } = useCategories();
@@ -72,51 +67,29 @@ const History = ({
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ kind: "expense" | "income"; id: string } | null>(null);
+  const selection = useBulkSelection();
 
   const applyPreset = (preset: "today" | "7d" | "30d" | "month") => {
     const now = new Date();
-    if (preset === "today") {
-      setFrom(startOfDay(now));
-      setTo(endOfDay(now));
-    } else if (preset === "7d") {
-      const f = new Date(now);
-      f.setDate(now.getDate() - 6);
-      setFrom(startOfDay(f));
-      setTo(endOfDay(now));
-    } else if (preset === "30d") {
-      const f = new Date(now);
-      f.setDate(now.getDate() - 29);
-      setFrom(startOfDay(f));
-      setTo(endOfDay(now));
-    } else {
-      setFrom(startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)));
-      setTo(endOfDay(now));
-    }
+    if (preset === "today") { setFrom(startOfDay(now)); setTo(endOfDay(now)); }
+    else if (preset === "7d") { const f = new Date(now); f.setDate(now.getDate() - 6); setFrom(startOfDay(f)); setTo(endOfDay(now)); }
+    else if (preset === "30d") { const f = new Date(now); f.setDate(now.getDate() - 29); setFrom(startOfDay(f)); setTo(endOfDay(now)); }
+    else { setFrom(startOfDay(new Date(now.getFullYear(), now.getMonth(), 1))); setTo(endOfDay(now)); }
   };
 
-  const clearDates = () => {
-    setFrom(undefined);
-    setTo(undefined);
-  };
+  const clearDates = () => { setFrom(undefined); setTo(undefined); };
 
   const items = useMemo<TimelineItem[]>(() => {
-    const matched = filterTransactions(
-      expenses,
-      income,
-      { query, type, category: cat, from, to },
-      categories,
-      lang
-    );
-    return matched.map((it) =>
-      it.kind === "expense"
-        ? { kind: "expense", date: it.date, data: it.data }
-        : { kind: "income", date: it.date, data: it.data }
-    );
+    const matched = filterTransactions(expenses, income, { query, type, category: cat, from, to }, categories, lang);
+    return matched.map((it) => it.kind === "expense"
+      ? { kind: "expense", date: it.date, data: it.data }
+      : { kind: "income", date: it.date, data: it.data });
   }, [expenses, income, query, cat, from, to, type, categories, lang]);
 
+  const visibleIds = useMemo(() => items.map((it) => `${it.kind}:${it.data.id}`), [items]);
+
   const totals = useMemo(() => {
-    let inc = 0,
-      exp = 0;
+    let inc = 0, exp = 0;
     for (const it of items) {
       if (it.kind === "expense") exp += Number(it.data.amount);
       else inc += Number(it.data.amount);
@@ -137,8 +110,18 @@ const History = ({
     return acc;
   }, {});
 
+  const handleBulkDelete = async (ids: string[]) => {
+    const { expense, income: incIds } = splitSelection(ids);
+    const [a, b] = await Promise.all([
+      onDeleteExpensesBulk(expense),
+      onDeleteIncomeBulk(incIds),
+    ]);
+    const total = a + b;
+    if (total > 0) toast.success(t("bulk_deleted_toast").replace("{n}", String(total)));
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-28">
       <section className="mb-6 sm:mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p className="text-sm text-muted-foreground mb-1">{t("history")}</p>
@@ -146,14 +129,8 @@ const History = ({
         </div>
         <div className="text-right">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("filtered_total")}</p>
-          <p
-            className={cn(
-              "font-display text-2xl sm:text-3xl tabular-nums",
-              totals.net >= 0 ? "text-success" : "text-alert"
-            )}
-          >
-            {totals.net >= 0 ? "+" : "−"}
-            {formatCOP(Math.abs(totals.net), { decimals: 0 })}
+          <p className={cn("font-display text-2xl sm:text-3xl tabular-nums", totals.net >= 0 ? "text-success" : "text-alert")}>
+            {totals.net >= 0 ? "+" : "−"}{formatCOP(Math.abs(totals.net), { decimals: 0 })}
           </p>
         </div>
       </section>
@@ -161,107 +138,77 @@ const History = ({
       <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-card mb-6 space-y-4">
         <div className="relative">
           <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={t("search_placeholder")}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="pl-9 rounded-xl bg-secondary border-transparent"
-          />
+          <Input placeholder={t("search_placeholder")} value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9 rounded-xl bg-secondary border-transparent" />
         </div>
 
-        {/* Type filter */}
         <div className="flex items-center gap-1 bg-secondary rounded-full p-1 w-fit">
           {(["all", "expense", "income"] as TypeFilter[]).map((tk) => (
-            <button
-              key={tk}
-              onClick={() => setType(tk)}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium transition-smooth",
-                type === tk ? "bg-card shadow-card" : "text-muted-foreground"
-              )}
-            >
+            <button key={tk} onClick={() => setType(tk)} className={cn("px-3 py-1.5 rounded-full text-xs font-medium transition-smooth", type === tk ? "bg-card shadow-card" : "text-muted-foreground")}>
               {tk === "all" ? t("type_all") : tk === "expense" ? t("type_expenses") : t("type_income")}
             </button>
           ))}
         </div>
 
-        {/* Date range */}
         <div className="flex flex-wrap items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className={cn("rounded-full bg-secondary border-transparent", !from && "text-muted-foreground")}>
-                <CalendarIcon className="h-3.5 w-3.5" />
-                {t("from")}: {from ? format(from, "PP", { locale: dateLocale }) : "—"}
+                <CalendarIcon className="h-3.5 w-3.5" />{t("from")}: {from ? format(from, "PP", { locale: dateLocale }) : "—"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar mode="single" selected={from} onSelect={(d) => setFrom(d ? startOfDay(d) : undefined)} initialFocus locale={dateLocale} className="p-3 pointer-events-auto" />
             </PopoverContent>
           </Popover>
-
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className={cn("rounded-full bg-secondary border-transparent", !to && "text-muted-foreground")}>
-                <CalendarIcon className="h-3.5 w-3.5" />
-                {t("to")}: {to ? format(to, "PP", { locale: dateLocale }) : "—"}
+                <CalendarIcon className="h-3.5 w-3.5" />{t("to")}: {to ? format(to, "PP", { locale: dateLocale }) : "—"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar mode="single" selected={to} onSelect={(d) => setTo(d ? endOfDay(d) : undefined)} initialFocus locale={dateLocale} className="p-3 pointer-events-auto" />
             </PopoverContent>
           </Popover>
-
           {(from || to) && (
             <Button variant="ghost" size="sm" onClick={clearDates} className="rounded-full text-muted-foreground">
-              <X className="h-3.5 w-3.5" />
-              {t("clear")}
+              <X className="h-3.5 w-3.5" />{t("clear")}
             </Button>
           )}
-
           <div className="flex flex-wrap gap-1.5 ml-auto">
-            {(
-              [
-                ["today", t("preset_today")],
-                ["7d", t("preset_7d")],
-                ["30d", t("preset_30d")],
-                ["month", t("preset_month")],
-              ] as const
-            ).map(([k, label]) => (
-              <button
-                key={k}
-                onClick={() => applyPreset(k)}
-                className="px-2.5 py-1 rounded-full text-xs font-medium bg-secondary hover:bg-muted transition-smooth"
-              >
-                {label}
-              </button>
+            {([["today", t("preset_today")],["7d", t("preset_7d")],["30d", t("preset_30d")],["month", t("preset_month")]] as const).map(([k, label]) => (
+              <button key={k} onClick={() => applyPreset(k)} className="px-2.5 py-1 rounded-full text-xs font-medium bg-secondary hover:bg-muted transition-smooth">{label}</button>
             ))}
           </div>
         </div>
 
-        {/* Categories (only for expenses) */}
         {type !== "income" && (
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setCat(null)}
-              className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-smooth border", !cat ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-transparent")}
-            >
-              {t("all")}
-            </button>
+            <button onClick={() => setCat(null)} className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-smooth border", !cat ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-transparent")}>{t("all")}</button>
             {categories.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setCat(c.slug === cat ? null : c.slug)}
-                className={cn(
-                  "px-3 py-1.5 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border",
-                  cat === c.slug ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-transparent hover:border-border"
-                )}
-              >
-                <span>{c.icon}</span>
-                <span>{c.name}</span>
+              <button key={c.id} onClick={() => setCat(c.slug === cat ? null : c.slug)} className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-smooth flex items-center gap-1.5 border", cat === c.slug ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-transparent hover:border-border")}>
+                <span>{c.icon}</span><span>{c.name}</span>
               </button>
             ))}
           </div>
         )}
+
+        <div className="flex items-center justify-between pt-1">
+          <Button
+            variant={selection.mode ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => (selection.mode ? selection.exit() : selection.enter())}
+          >
+            <CheckSquare className="h-3.5 w-3.5" />
+            {selection.mode ? t("cancel") : t("bulk_select")}
+          </Button>
+          {selection.mode && (
+            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => selection.selectAll(visibleIds)} disabled={visibleIds.length === 0}>
+              {t("bulk_select_all")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {!loading && items.length === 0 && (
@@ -282,62 +229,44 @@ const History = ({
                     ? (it.data as Expense).note || cat!.name
                     : (it.data as Income).description || t(src!.labelKey);
                   const sub = isExpense ? cat!.name : t(src!.labelKey);
+                  const compId = `${it.kind}:${it.data.id}`;
+                  const selected = selection.isSelected(compId);
                   return (
                     <div
-                      key={`${it.kind}-${it.data.id}`}
+                      key={compId}
+                      onClick={selection.mode ? () => selection.toggle(compId) : undefined}
                       className={cn(
                         "group flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-smooth animate-fade-in-up hover:bg-muted/45 border-l-4",
                         isExpense ? "border-l-alert/60" : "border-l-success/60",
-                        i !== group.length - 1 ? "border-b border-border" : ""
+                        i !== group.length - 1 ? "border-b border-border" : "",
+                        selection.mode && "cursor-pointer select-none",
+                        selected && "bg-primary/5"
                       )}
                       style={{ animationDelay: `${Math.min(i * 30, 120)}ms` }}
                     >
-                      <div
-                        className={cn(
-                          "h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0",
-                          !isExpense && "bg-success-soft text-success"
-                        )}
-                        style={isExpense ? { backgroundColor: `hsl(${cat!.color} / 0.15)` } : undefined}
-                      >
+                      {selection.mode && (
+                        <Checkbox checked={selected} onCheckedChange={() => selection.toggle(compId)} onClick={(ev) => ev.stopPropagation()} className="h-5 w-5 shrink-0" />
+                      )}
+                      <div className={cn("h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0", !isExpense && "bg-success-soft text-success")} style={isExpense ? { backgroundColor: `hsl(${cat!.color} / 0.15)` } : undefined}>
                         {isExpense ? cat!.icon : src!.emoji}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate text-sm sm:text-base">{label}</p>
                         <p className="text-xs text-muted-foreground">{sub}</p>
                       </div>
-                      <p
-                        className={cn(
-                          "font-display text-base sm:text-lg tabular-nums",
-                          isExpense ? "text-alert" : "text-success"
-                        )}
-                      >
-                        {isExpense ? "−" : "+"}
-                        {formatCOP(it.data.amount, { decimals: 0 })}
+                      <p className={cn("font-display text-base sm:text-lg tabular-nums", isExpense ? "text-alert" : "text-success")}>
+                        {isExpense ? "−" : "+"}{formatCOP(it.data.amount, { decimals: 0 })}
                       </p>
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("edit")}
-                          onClick={() =>
-                            isExpense
-                              ? setEditingExpense(it.data as Expense)
-                              : setEditingIncome(it.data as Income)
-                          }
-                          className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-primary"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("delete")}
-                          onClick={() => setPendingDelete({ kind: it.kind, id: it.data.id })}
-                          className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {!selection.mode && (
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <Button variant="ghost" size="icon" aria-label={t("edit")} onClick={() => isExpense ? setEditingExpense(it.data as Expense) : setEditingIncome(it.data as Income)} className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-primary">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" aria-label={t("delete")} onClick={() => setPendingDelete({ kind: it.kind, id: it.data.id })} className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -347,16 +276,8 @@ const History = ({
         </div>
       )}
 
-      <EditExpenseDialog
-        expense={editingExpense}
-        onOpenChange={(o) => !o && setEditingExpense(null)}
-        onUpdate={onUpdateExpense}
-      />
-      <EditIncomeDialog
-        income={editingIncome}
-        onOpenChange={(o) => !o && setEditingIncome(null)}
-        onUpdate={onUpdateIncome}
-      />
+      <EditExpenseDialog expense={editingExpense} onOpenChange={(o) => !o && setEditingExpense(null)} onUpdate={onUpdateExpense} />
+      <EditIncomeDialog income={editingIncome} onOpenChange={(o) => !o && setEditingIncome(null)} onUpdate={onUpdateIncome} />
       <ConfirmDeleteDialog
         open={!!pendingDelete}
         onOpenChange={(o) => !o && setPendingDelete(null)}
@@ -368,6 +289,8 @@ const History = ({
           setPendingDelete(null);
         }}
       />
+
+      <BulkActionBar selection={selection} visibleIds={visibleIds} onDelete={handleBulkDelete} />
     </div>
   );
 };

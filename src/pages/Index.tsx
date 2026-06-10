@@ -14,6 +14,7 @@ import IncomePage from "./Income";
 import Monthly from "./Monthly";
 import Categories from "./Categories";
 import SearchPage from "./Search";
+import Trash from "./Trash";
 import NotFound from "./NotFound";
 
 const Index = () => {
@@ -21,8 +22,8 @@ const Index = () => {
   const [openIncome, setOpenIncome] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
-  const { expenses, loading, addExpense, updateExpense, deleteExpense } = useExpenses();
-  const { income, loading: incomeLoading, addIncome, updateIncome, deleteIncome } = useIncome();
+  const { expenses, loading, addExpense, updateExpense, deleteExpense, deleteExpensesBulk } = useExpenses();
+  const { income, loading: incomeLoading, addIncome, updateIncome, deleteIncome, deleteIncomeBulk } = useIncome();
 
   return (
     <AppShell
@@ -56,6 +57,8 @@ const Index = () => {
               onDeleteIncome={deleteIncome}
               onUpdateExpense={updateExpense}
               onUpdateIncome={updateIncome}
+              onDeleteExpensesBulk={deleteExpensesBulk}
+              onDeleteIncomeBulk={deleteIncomeBulk}
             />
           }
         />
@@ -68,12 +71,14 @@ const Index = () => {
               onAdd={addIncome}
               onUpdate={updateIncome}
               onDelete={deleteIncome}
+              onDeleteBulk={deleteIncomeBulk}
             />
           }
         />
         <Route path="/monthly" element={<Monthly />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/trash" element={<Trash />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

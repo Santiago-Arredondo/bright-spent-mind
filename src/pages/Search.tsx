@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search as SearchIcon, CalendarIcon, X, Sparkles } from "lucide-react";
+import { Search as SearchIcon, CalendarIcon, X, Sparkles, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BulkActionBar } from "@/components/BulkActionBar";
+import { useBulkSelection } from "@/hooks/useBulkSelection";
+import { splitSelection } from "@/lib/bulkActions";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -56,8 +61,8 @@ const HL = ({ text, query }: { text: string; query: string }) => {
 const SearchPage = () => {
   const { t, lang } = useLanguage();
   const { user } = useAuth();
-  const { expenses, loading: lExp } = useExpenses();
-  const { income, loading: lInc } = useIncome();
+  const { expenses, loading: lExp, deleteExpensesBulk } = useExpenses();
+  const { income, loading: lInc, deleteIncomeBulk } = useIncome();
   const { categories, getCategory } = useCategories();
   const dateLocale = lang === "es" ? esLocale : undefined;
 
@@ -112,6 +117,15 @@ const SearchPage = () => {
     [expenses, income, filters, categories, lang, semantic]
   );
   const summary = useMemo(() => summarize(items, categories), [items, categories]);
+  const selection = useBulkSelection();
+  const visibleIds = useMemo(() => items.map((it) => `${it.kind}:${it.data.id}`), [items]);
+
+  const handleBulkDelete = async (ids: string[]) => {
+    const { expense, income: incIds } = splitSelection(ids);
+    const [a, b] = await Promise.all([deleteExpensesBulk(expense), deleteIncomeBulk(incIds)]);
+    const total = a + b;
+    if (total > 0) toast.success(t("bulk_deleted_toast").replace("{n}", String(total)));
+  };
 
   const applyPreset = (preset: "today" | "7d" | "month" | "30d") => {
     const now = new Date();
@@ -347,6 +361,24 @@ const SearchPage = () => {
             ))}
           </div>
         )}
+
+        <div className="flex items-center justify-between pt-1">
+          <Button
+            variant={selection.mode ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => (selection.mode ? selection.exit() : selection.enter())}
+            disabled={items.length === 0}
+          >
+            <CheckSquare className="h-3.5 w-3.5" />
+            {selection.mode ? t("cancel") : t("bulk_select")}
+          </Button>
+          {selection.mode && (
+            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => selection.selectAll(visibleIds)} disabled={visibleIds.length === 0}>
+              {t("bulk_select_all")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Summary */}
@@ -420,16 +452,24 @@ const SearchPage = () => {
               ? (it.data as Expense).note || catMeta!.name
               : (it.data as Income).description || t(srcMeta!.labelKey);
             const sub = isExpense ? catMeta!.name : t(srcMeta!.labelKey);
+            const compId = `${it.kind}:${it.data.id}`;
+            const selected = selection.isSelected(compId);
             return (
               <div
                 key={`${it.kind}-${it.data.id}`}
+                onClick={selection.mode ? () => selection.toggle(compId) : undefined}
                 className={cn(
                   "flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-smooth animate-fade-in-up hover:bg-muted/45 border-l-4",
                   isExpense ? "border-l-alert/60" : "border-l-success/60",
-                  i !== items.length - 1 ? "border-b border-border" : ""
+                  i !== items.length - 1 ? "border-b border-border" : "",
+                  selection.mode && "cursor-pointer select-none",
+                  selected && "bg-primary/5"
                 )}
                 style={{ animationDelay: `${Math.min(i * 25, 120)}ms` }}
               >
+                {selection.mode && (
+                  <Checkbox checked={selected} onCheckedChange={() => selection.toggle(compId)} onClick={(ev) => ev.stopPropagation()} className="h-5 w-5 shrink-0" />
+                )}
                 <div
                   className={cn(
                     "h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0",
@@ -471,6 +511,7 @@ const SearchPage = () => {
           })}
         </div>
       )}
+      <BulkActionBar selection={selection} visibleIds={visibleIds} onDelete={handleBulkDelete} />
     </div>
   );
 };
