@@ -47,6 +47,9 @@ export const useIncome = () => {
 
   useEffect(() => {
     load();
+    const onChange = () => load();
+    window.addEventListener("flowbit:income-changed", onChange);
+    return () => window.removeEventListener("flowbit:income-changed", onChange);
   }, []);
 
   const addIncome = async (e: { amount: number; source: string; description?: string; received_at?: string }) => {
@@ -129,6 +132,7 @@ export const useIncome = () => {
       toast.error("Couldn't delete");
       return 0;
     }
+    window.dispatchEvent(new CustomEvent("flowbit:income-changed"));
     return ids.length;
   };
 
