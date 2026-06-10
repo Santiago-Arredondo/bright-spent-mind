@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search as SearchIcon, CalendarIcon, X, Sparkles } from "lucide-react";
+import { Search as SearchIcon, CalendarIcon, X, Sparkles, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BulkActionBar } from "@/components/BulkActionBar";
+import { useBulkSelection } from "@/hooks/useBulkSelection";
+import { splitSelection } from "@/lib/bulkActions";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -56,8 +61,8 @@ const HL = ({ text, query }: { text: string; query: string }) => {
 const SearchPage = () => {
   const { t, lang } = useLanguage();
   const { user } = useAuth();
-  const { expenses, loading: lExp } = useExpenses();
-  const { income, loading: lInc } = useIncome();
+  const { expenses, loading: lExp, deleteExpensesBulk } = useExpenses();
+  const { income, loading: lInc, deleteIncomeBulk } = useIncome();
   const { categories, getCategory } = useCategories();
   const dateLocale = lang === "es" ? esLocale : undefined;
 
