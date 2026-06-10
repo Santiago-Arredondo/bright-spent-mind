@@ -117,6 +117,15 @@ const SearchPage = () => {
     [expenses, income, filters, categories, lang, semantic]
   );
   const summary = useMemo(() => summarize(items, categories), [items, categories]);
+  const selection = useBulkSelection();
+  const visibleIds = useMemo(() => items.map((it) => `${it.kind}:${it.data.id}`), [items]);
+
+  const handleBulkDelete = async (ids: string[]) => {
+    const { expense, income: incIds } = splitSelection(ids);
+    const [a, b] = await Promise.all([deleteExpensesBulk(expense), deleteIncomeBulk(incIds)]);
+    const total = a + b;
+    if (total > 0) toast.success(t("bulk_deleted_toast").replace("{n}", String(total)));
+  };
 
   const applyPreset = (preset: "today" | "7d" | "month" | "30d") => {
     const now = new Date();
