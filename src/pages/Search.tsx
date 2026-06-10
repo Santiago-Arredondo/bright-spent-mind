@@ -361,6 +361,24 @@ const SearchPage = () => {
             ))}
           </div>
         )}
+
+        <div className="flex items-center justify-between pt-1">
+          <Button
+            variant={selection.mode ? "secondary" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => (selection.mode ? selection.exit() : selection.enter())}
+            disabled={items.length === 0}
+          >
+            <CheckSquare className="h-3.5 w-3.5" />
+            {selection.mode ? t("cancel") : t("bulk_select")}
+          </Button>
+          {selection.mode && (
+            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => selection.selectAll(visibleIds)} disabled={visibleIds.length === 0}>
+              {t("bulk_select_all")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Summary */}
@@ -434,16 +452,24 @@ const SearchPage = () => {
               ? (it.data as Expense).note || catMeta!.name
               : (it.data as Income).description || t(srcMeta!.labelKey);
             const sub = isExpense ? catMeta!.name : t(srcMeta!.labelKey);
+            const compId = `${it.kind}:${it.data.id}`;
+            const selected = selection.isSelected(compId);
             return (
               <div
                 key={`${it.kind}-${it.data.id}`}
+                onClick={selection.mode ? () => selection.toggle(compId) : undefined}
                 className={cn(
                   "flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-smooth animate-fade-in-up hover:bg-muted/45 border-l-4",
                   isExpense ? "border-l-alert/60" : "border-l-success/60",
-                  i !== items.length - 1 ? "border-b border-border" : ""
+                  i !== items.length - 1 ? "border-b border-border" : "",
+                  selection.mode && "cursor-pointer select-none",
+                  selected && "bg-primary/5"
                 )}
                 style={{ animationDelay: `${Math.min(i * 25, 120)}ms` }}
               >
+                {selection.mode && (
+                  <Checkbox checked={selected} onCheckedChange={() => selection.toggle(compId)} onClick={(ev) => ev.stopPropagation()} className="h-5 w-5 shrink-0" />
+                )}
                 <div
                   className={cn(
                     "h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0",
