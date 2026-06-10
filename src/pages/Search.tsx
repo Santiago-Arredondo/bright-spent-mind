@@ -511,6 +511,7 @@ const SearchPage = () => {
           })}
         </div>
       )}
+      <BulkActionBar selection={selection} visibleIds={visibleIds} onDelete={handleBulkDelete} />
     </div>
   );
 };
