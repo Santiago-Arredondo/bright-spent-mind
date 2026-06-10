@@ -52,6 +52,7 @@ export const useTrash = (onRestore?: () => void) => {
     const { error } = await supabase.from("expenses").update({ deleted_at: null }).in("id", ids);
     if (error) { toast.error("Couldn't restore"); return; }
     setExpenses((p) => p.filter((e) => !ids.includes(e.id)));
+    window.dispatchEvent(new CustomEvent("flowbit:expenses-changed"));
     onRestore?.();
   };
   const restoreIncome = async (ids: string[]) => {
@@ -59,6 +60,7 @@ export const useTrash = (onRestore?: () => void) => {
     const { error } = await supabase.from("income").update({ deleted_at: null }).in("id", ids);
     if (error) { toast.error("Couldn't restore"); return; }
     setIncome((p) => p.filter((i) => !ids.includes(i.id)));
+    window.dispatchEvent(new CustomEvent("flowbit:income-changed"));
     onRestore?.();
   };
   const purgeExpenses = async (ids: string[]) => {
