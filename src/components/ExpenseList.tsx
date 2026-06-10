@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { useCategories } from "@/contexts/CategoriesContext";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEmptyMessage } from "@/hooks/useEmptyMessage";
 import { formatCOP } from "@/lib/money";
 import { formatShortMonthDay, getCalendarDayDistance } from "@/lib/dateFormat";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { cn } from "@/lib/utils";
 
 export interface Expense {
   id: string;
@@ -16,13 +18,21 @@ export interface Expense {
   spent_at: string;
 }
 
+interface SelectionApi {
+  mode: boolean;
+  isSelected: (compositeId: string) => boolean;
+  toggle: (compositeId: string) => void;
+}
+
 interface Props {
   expenses: Expense[];
   onDelete: (id: string) => void;
   onEdit?: (expense: Expense) => void;
+  /** When provided, list renders checkboxes and routes row clicks to selection. */
+  selection?: SelectionApi;
 }
 
-export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
+export const ExpenseList = ({ expenses, onDelete, onEdit, selection }: Props) => {
   const { t, lang } = useLanguage();
   const { getCategory } = useCategories();
   const emptyMsg = useEmptyMessage("list");
@@ -51,6 +61,8 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
     return acc;
   }, {});
 
+  const selectionMode = !!selection?.mode;
+
   return (
     <>
       <div className="space-y-6">
@@ -61,14 +73,29 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
               {items.map((e, i) => {
                 const cat = getCategory(e.category);
                 const catLabel = cat.name;
+                const compId = `expense:${e.id}`;
+                const selected = selection?.isSelected(compId) ?? false;
                 return (
                   <div
                     key={e.id}
-                    className={`group flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-smooth animate-fade-in-up hover:bg-muted/45 ${
-                      i !== items.length - 1 ? "border-b border-border" : ""
-                    }`}
+                    onClick={selectionMode ? () => selection!.toggle(compId) : undefined}
+                    className={cn(
+                      "group flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-smooth animate-fade-in-up hover:bg-muted/45",
+                      i !== items.length - 1 ? "border-b border-border" : "",
+                      selectionMode && "cursor-pointer select-none",
+                      selected && "bg-primary/5"
+                    )}
                     style={{ animationDelay: `${Math.min(i * 35, 140)}ms` }}
                   >
+                    {selectionMode && (
+                      <Checkbox
+                        checked={selected}
+                        onCheckedChange={() => selection!.toggle(compId)}
+                        onClick={(ev) => ev.stopPropagation()}
+                        aria-label={t("bulk_select")}
+                        className="h-5 w-5 shrink-0"
+                      />
+                    )}
                     <div
                       className="h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-base sm:text-lg shrink-0 transition-smooth group-hover:scale-110"
                       style={{ backgroundColor: `hsl(${cat.color} / 0.15)` }}
@@ -82,28 +109,30 @@ export const ExpenseList = ({ expenses, onDelete, onEdit }: Props) => {
                     <p className="font-display text-base sm:text-lg tabular-nums text-alert">
                       −{formatCOP(e.amount, { decimals: 0 })}
                     </p>
-                    <div className="flex items-center gap-0.5 shrink-0">
-                      {onEdit && (
+                    {!selectionMode && (
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        {onEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(e)}
+                            aria-label={t("edit")}
+                            className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-primary"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => onEdit(e)}
-                          aria-label={t("edit")}
-                          className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => setPendingDelete(e.id)}
+                          aria-label={t("delete")}
+                          className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setPendingDelete(e.id)}
-                        aria-label={t("delete")}
-                        className="md:opacity-0 md:group-hover:opacity-100 transition-smooth h-8 w-8 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
