@@ -40,6 +40,9 @@ export const useExpenses = () => {
 
   useEffect(() => {
     load();
+    const onChange = () => load();
+    window.addEventListener("flowbit:expenses-changed", onChange);
+    return () => window.removeEventListener("flowbit:expenses-changed", onChange);
   }, []);
 
   const addExpense = async (e: { amount: number; category: string; note?: string; spent_at?: string }) => {
@@ -126,6 +129,7 @@ export const useExpenses = () => {
       toast.error("Couldn't delete");
       return 0;
     }
+    window.dispatchEvent(new CustomEvent("flowbit:expenses-changed"));
     return ids.length;
   };
 
