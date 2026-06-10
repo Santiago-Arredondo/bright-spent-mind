@@ -92,6 +92,7 @@ export type Database = {
           category: string
           created_at: string
           date: string
+          deleted_at: string | null
           description: string | null
           embedding: string | null
           embedding_model: string | null
@@ -103,6 +104,7 @@ export type Database = {
           category: string
           created_at?: string
           date?: string
+          deleted_at?: string | null
           description?: string | null
           embedding?: string | null
           embedding_model?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           category?: string
           created_at?: string
           date?: string
+          deleted_at?: string | null
           description?: string | null
           embedding?: string | null
           embedding_model?: string | null
@@ -127,6 +130,7 @@ export type Database = {
           amount: number
           created_at: string
           date: string
+          deleted_at: string | null
           description: string | null
           embedding: string | null
           embedding_model: string | null
@@ -138,6 +142,7 @@ export type Database = {
           amount: number
           created_at?: string
           date?: string
+          deleted_at?: string | null
           description?: string | null
           embedding?: string | null
           embedding_model?: string | null
@@ -149,6 +154,7 @@ export type Database = {
           amount?: number
           created_at?: string
           date?: string
+          deleted_at?: string | null
           description?: string | null
           embedding?: string | null
           embedding_model?: string | null
